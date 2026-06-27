@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMS Pro — Asset Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Supabase JS SDK (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+:root{--accent:#3b82f6;--accent-glow:rgba(59,130,246,.15);--green:#10b981;--green-bg:rgba(16,185,129,.1);--yellow:#f59e0b;--yellow-bg:rgba(245,158,11,.1);--red:#ef4444;--red-bg:rgba(239,68,68,.1);--purple:#8b5cf6;--purple-bg:rgba(139,92,246,.1);--orange:#f97316;--orange-bg:rgba(249,115,22,.1);--teal:#14b8a6;--radius:10px;--radius-lg:14px;--sidebar-w:252px;--topbar-h:62px;--tr:.22s cubic-bezier(.4,0,.2,1)}
+[data-theme="dark"]{--bg:#0d0f14;--bg2:#111318;--surface:#1a1d26;--surface2:#20232e;--surface3:#272a36;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);--text:#e2e5f0;--text2:#8a8fa8;--text3:#525670;--shadow:rgba(0,0,0,.55)}
+[data-theme="light"]{--bg:#f0f2f8;--bg2:#e8eaf2;--surface:#ffffff;--surface2:#f4f5fb;--surface3:#eaecf5;--border:rgba(0,0,0,.07);--border2:rgba(0,0,0,.13);--text:#1a1d2e;--text2:#555878;--text3:#9095b0;--shadow:rgba(0,0,0,.09)}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14px}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background var(--tr),color var(--tr)}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:width var(--tr),transform var(--tr)}
+.sidebar.col{width:66px}
+.sidebar.col .nlabel,.sidebar.col .logo-text,.sidebar.col .nsec,.sidebar.col .nbadge,.sidebar.col .sf-info{display:none}
+.sidebar.col .nitem{justify-content:center;padding:10px 0}
+.sidebar.col .nicon{margin:0}
+.logo{padding:18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;min-height:var(--topbar-h)}
+.logo-mark{width:34px;height:34px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(59,130,246,.35)}
+.logo-text{min-width:0}
+.logo-title{font-weight:800;font-size:15px;letter-spacing:-.02em}
+.logo-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.sb-toggle{width:26px;height:26px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;margin-left:auto;transition:all var(--tr);flex-shrink:0}
+.sb-toggle:hover{background:var(--surface3);color:var(--text)}
+.sb-scroll{flex:1;overflow-y:auto;padding:10px 0}
+.nsec{padding:9px 16px 3px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+.nitem{display:flex;align-items:center;gap:10px;padding:9px 12px 9px 16px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;border-radius:var(--radius);margin:1px 8px;transition:all var(--tr);position:relative}
+.nitem:hover{background:var(--surface3);color:var(--text)}
+.nitem.active{background:var(--accent-glow);color:var(--accent);font-weight:600}
+.nicon{width:19px;height:19px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ico,.nicon svg,.sc-icon svg,.iBtn svg,.sicon svg,.th-opt svg,.t-icon svg,.lk-lock-icon svg,.cmd-ii svg,.rcard-icon svg{width:18px;height:18px;stroke-width:2;stroke:currentColor;fill:none}
+.sc-icon svg{width:20px;height:20px}
+.th-opt svg{width:15px;height:15px}
+.t-icon svg{width:16px;height:16px}
+.nlabel{flex:1}
+.nbadge{margin-left:auto;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;background:var(--red);color:#fff}
+.nbadge.b-blue{background:var(--accent)}
+.nbadge.b-yellow{background:var(--yellow);color:#000}
+.sf{border-top:1px solid var(--border);padding:13px 16px;display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#8b5cf6,#3b82f6);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sf-info{min-width:0;flex:1}
+.sf-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sf-role{font-size:11px;color:var(--accent);font-weight:500}
+
+/* MAIN */
+.main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;min-height:100vh;transition:margin-left var(--tr)}
+.main.exp{margin-left:66px}
+
+/* TOPBAR */
+.topbar{height:var(--topbar-h);display:flex;align-items:center;padding:0 26px;gap:12px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:100;transition:background var(--tr)}
+.tb-bc{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text2)}
+.tb-bc .cur{color:var(--text);font-weight:700}
+.tb-bc .sep{color:var(--text3)}
+.tb-search{flex:1;max-width:320px;display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0 11px;gap:8px;height:37px;position:relative;transition:border-color var(--tr)}
+.tb-search:focus-within{border-color:var(--accent)}
+.tb-search input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:inherit;font-size:13px}
+.tb-search input::placeholder{color:var(--text3)}
+.sicon{color:var(--text3);font-size:14px;flex-shrink:0}
+.sresults{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);box-shadow:0 16px 48px var(--shadow);display:none;z-index:400;overflow:hidden;max-height:320px;overflow-y:auto}
+.sresults.show{display:block}
+.sri{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);transition:background var(--tr)}
+.sri:last-child{border-bottom:none}
+.sri:hover{background:var(--surface2)}
+.sri-icon{font-size:15px;flex-shrink:0}
+.sri-name{font-weight:600;margin-bottom:1px}
+.sri-sub{font-size:11px;color:var(--text3)}
+.tb-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.iBtn{width:37px;height:37px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;position:relative;transition:all var(--tr)}
+.iBtn:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.ndot{width:8px;height:8px;background:var(--red);border-radius:50%;position:absolute;top:6px;right:6px;border:1.5px solid var(--bg2)}
+.theme-sw{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:3px;gap:2px}
+.th-opt{width:29px;height:27px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:all var(--tr);color:var(--text3)}
+.th-opt.on{background:var(--accent);color:#fff}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 15px;height:37px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all var(--tr);white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#2563eb;transform:translateY(-1px);box-shadow:0 4px 16px rgba(59,130,246,.4)}
+.btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
+.btn-danger{background:var(--red-bg);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-success{background:var(--green-bg);border:1px solid rgba(16,185,129,.3);color:var(--green)}
+.btn-success:hover{background:var(--green);color:#fff}
+.btn-sm{height:31px;padding:0 12px;font-size:12px}
+.btn-xs{height:26px;padding:0 9px;font-size:11px;border-radius:7px}
+
+/* CONTENT */
+.content{flex:1;padding:26px;overflow-y:auto}
+.page{display:none;animation:fadeUp .25s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.phd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.phd-l h2{font-size:21px;font-weight:800;letter-spacing:-.03em}
+.phd-l p{font-size:12px;color:var(--text2);margin-top:3px}
+.phd-r{display:flex;gap:8px;flex-wrap:wrap}
+
+/* STAT CARDS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:22px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;position:relative;overflow:hidden;cursor:pointer;transition:all var(--tr)}
+.sc:hover{transform:translateY(-2px);border-color:var(--border2);box-shadow:0 8px 28px var(--shadow)}
+.sc-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.sc-val{font-size:30px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:4px}
+.sc-lbl{font-size:12px;color:var(--text2);font-weight:500}
+.sc-delta{position:absolute;top:16px;right:14px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+.du{background:var(--green-bg);color:var(--green)}.dd{background:var(--red-bg);color:var(--red)}
+.sbar{height:3px;border-radius:99px;background:var(--border);margin-top:12px;overflow:hidden}
+.sbf{height:100%;border-radius:99px;transition:width 1.2s ease}
+
+/* COLOR HELPERS */
+.c-blue{color:var(--accent)}.c-green{color:var(--green)}.c-yellow{color:var(--yellow)}.c-red{color:var(--red)}.c-purple{color:var(--purple)}.c-orange{color:var(--orange)}.c-teal{color:var(--teal)}
+.bg-blue{background:var(--accent-glow)}.bg-green{background:var(--green-bg)}.bg-yellow{background:var(--yellow-bg)}.bg-red{background:var(--red-bg)}.bg-purple{background:var(--purple-bg)}.bg-orange{background:var(--orange-bg)}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:background var(--tr),border-color var(--tr)}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-size:14px;font-weight:700}
+.card-actions{display:flex;gap:6px;align-items:center}
+.card-body{padding:18px}
+.card-body.p0{padding:0}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:580px}
+thead th{padding:9px 15px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;background:var(--surface2)}
+tbody td{padding:11px 15px;font-size:13px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background var(--tr)}
+tbody tr:hover td{background:var(--surface2)}
+tbody tr.sel td{background:var(--accent-glow)}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--accent)}
+.tck{width:34px}.tck input{cursor:pointer;accent-color:var(--accent);width:14px;height:14px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%}
+.badge-available{background:var(--green-bg);color:var(--green)}.badge-available::before{background:var(--green)}
+.badge-inuse{background:var(--accent-glow);color:var(--accent)}.badge-inuse::before{background:var(--accent)}
+.badge-repair{background:var(--yellow-bg);color:var(--yellow)}.badge-repair::before{background:var(--yellow)}
+.badge-disposed{background:var(--red-bg);color:var(--red)}.badge-disposed::before{background:var(--red)}
+.badge-active{background:var(--green-bg);color:var(--green)}.badge-active::before{background:var(--green)}
+.badge-inactive{background:rgba(90,95,114,.15);color:var(--text3)}.badge-inactive::before{background:var(--text3)}
+.badge-admin{background:var(--purple-bg);color:var(--purple)}.badge-admin::before{background:var(--purple)}
+.badge-done{background:var(--green-bg);color:var(--green)}.badge-done::before{background:var(--green)}
+.badge-pending{background:var(--orange-bg);color:var(--orange)}.badge-pending::before{background:var(--orange)}
+
+/* FORMS */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;letter-spacing:.03em;text-transform:uppercase}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color var(--tr)}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--accent)}
+.fg select option{background:var(--surface2)}.fg textarea{min-height:75px;resize:vertical}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.fgfull{grid-column:1/-1}
+
+/* MODAL */
+.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:18px}
+.moverlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:30px;position:relative;animation:mIn .2s ease;box-shadow:0 24px 80px var(--shadow)}
+.modal.mlg{max-width:700px}.modal.msm{max-width:420px}
+@keyframes mIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mhd{margin-bottom:22px}
+.mhd h3{font-size:18px;font-weight:800;letter-spacing:-.03em}
+.mhd p{font-size:13px;color:var(--text2);margin-top:3px}
+.mclose{position:absolute;top:22px;right:22px;width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all var(--tr)}
+.mclose:hover{background:var(--red-bg);color:var(--red);border-color:rgba(239,68,68,.3)}
+.mft{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;border-top:1px solid var(--border);padding-top:20px}
+
+/* TOAST */
+.toasts{position:fixed;top:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:12px 16px;display:flex;align-items:center;gap:11px;min-width:270px;max-width:370px;box-shadow:0 12px 40px var(--shadow);animation:tIn .25s ease;pointer-events:all;font-size:13px;transition:all .3s}
+@keyframes tIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.t-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.t-body{flex:1}
+.t-title{font-weight:700;margin-bottom:2px}
+.t-msg{font-size:12px;color:var(--text2)}
+.toast.success .t-icon{background:var(--green-bg);color:var(--green)}
+.toast.error .t-icon{background:var(--red-bg);color:var(--red)}
+.toast.warning .t-icon{background:var(--yellow-bg);color:var(--yellow)}
+.toast.info .t-icon{background:var(--accent-glow);color:var(--accent)}
+
+/* PROGRESS */
+.prog{height:6px;border-radius:99px;background:var(--border);overflow:hidden}
+.prog-f{height:100%;border-radius:99px;transition:width 1.2s ease}
+
+/* ALERT BANNERS */
+.alert{border-radius:var(--radius);padding:11px 15px;display:flex;align-items:center;gap:11px;margin-bottom:18px;font-size:13px;flex-wrap:wrap}
+.alert-warn{background:var(--yellow-bg);border:1px solid rgba(245,158,11,.25);color:var(--yellow)}
+.alert-info{background:var(--accent-glow);border:1px solid rgba(59,130,246,.25);color:var(--accent)}
+.alert-danger{background:var(--red-bg);border:1px solid rgba(239,68,68,.25);color:var(--red)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;align-items:center}
+.chip{padding:5px 13px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);transition:all var(--tr)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.on{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
+
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all var(--tr);margin-bottom:-1px}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.gauto{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.gdb{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.gdb2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}.mb22{margin-bottom:22px}
+.mt16{margin-top:16px}
+
+/* BULK BAR */
+.bulk-bar{display:none;align-items:center;gap:12px;background:var(--accent-glow);border:1px solid rgba(59,130,246,.3);border-radius:var(--radius);padding:9px 15px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--accent)}
+.bulk-bar.show{display:flex}
+.bb-actions{margin-left:auto;display:flex;gap:7px}
+
+/* ACTIVITY FEED */
+.af-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.af-item:last-child{border-bottom:none}
+.af-dc{display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:4px}
+.af-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.af-line{flex:1;width:1px;background:var(--border)}
+.af-txt{font-size:13px;line-height:1.5}
+.af-txt b{font-weight:700}
+.af-meta{display:flex;gap:10px;margin-top:4px}
+.af-time{font-size:11px;color:var(--text3)}
+.af-tag{font-size:11px;color:var(--text3)}
+
+/* LIFECYCLE */
+.lc-step{display:flex;gap:13px;padding:9px 0;position:relative}
+.lc-ind{display:flex;flex-direction:column;align-items:center}
+.lc-circ{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;border:2px solid;z-index:1}
+.lc-ln{flex:1;width:2px;background:var(--border);margin:3px 0;min-height:18px}
+.lc-step:last-child .lc-ln{display:none}
+.lc-step.done .lc-circ{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.lc-step.done .lc-ln{background:var(--green);opacity:.3}
+.lc-step.cur .lc-circ{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
+.lc-step.todo .lc-circ{background:var(--surface2);border-color:var(--border2);color:var(--text3)}
+.lc-body{padding-top:3px}
+.lc-body h4{font-size:13px;font-weight:700;margin-bottom:2px}
+.lc-body p{font-size:12px;color:var(--text2)}
+
+/* MAINTENANCE CARDS */
+.mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:17px;transition:all var(--tr)}
+.mcard:hover{border-color:var(--border2);transform:translateY(-1px)}
+.mcard-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}
+.mcard-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.mcard-id{font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.mcard-body{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px}
+.mcard-ft{display:flex;justify-content:space-between;align-items:center}
+.mcard-date{font-size:11px;color:var(--text3)}
+
+/* VENDOR CARDS */
+.vcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:all var(--tr);cursor:pointer}
+.vcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 28px var(--shadow)}
+.vcard-logo{width:42px;height:42px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:11px}
+.vcard-name{font-size:15px;font-weight:700;margin-bottom:2px}
+.vcard-id{font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-bottom:10px}
+.vcard-info{font-size:12px;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.vcard-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
+.vcard-tag{padding:2px 8px;border-radius:99px;font-size:11px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+
+/* REPORT CARDS */
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;cursor:pointer;transition:all var(--tr);text-align:center}
+.rcard:hover{border-color:var(--accent);transform:translateY(-2px);background:var(--accent-glow)}
+.rcard-icon{font-size:30px;margin-bottom:10px}
+.rcard-name{font-size:13px;font-weight:700;margin-bottom:4px}
+.rcard-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* TOGGLE */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.tr-info h4{font-size:14px;font-weight:600}
+.tr-info p{font-size:12px;color:var(--text2);margin-top:2px}
+.tog{width:40px;height:23px;border-radius:99px;background:var(--border2);cursor:pointer;position:relative;transition:background var(--tr);border:none;flex-shrink:0}
+.tog.on{background:var(--accent)}
+.tog::after{content:'';width:17px;height:17px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left var(--tr);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.tog.on::after{left:20px}
+
+/* COMMAND PALETTE */
+.cmd-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;align-items:flex-start;justify-content:center;padding-top:14vh;backdrop-filter:blur(8px)}
+.cmd-ov.open{display:flex}
+.cmd-box{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:540px;overflow:hidden;box-shadow:0 32px 100px var(--shadow);animation:cIn .18s ease}
+@keyframes cIn{from{opacity:0;transform:scale(.97) translateY(-8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.cmd-ir{display:flex;align-items:center;gap:11px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.cmd-in{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);font-family:inherit}
+.cmd-in::placeholder{color:var(--text3)}
+.cmd-res{max-height:360px;overflow-y:auto}
+.cmd-item{display:flex;align-items:center;gap:11px;padding:10px 18px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);transition:background var(--tr)}
+.cmd-item:last-child{border-bottom:none}
+.cmd-item:hover,.cmd-item.sel{background:var(--accent-glow);color:var(--accent)}
+.cmd-ii{width:26px;height:26px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.cmd-lbl{flex:1;font-weight:500}
+.cmd-hint{font-size:11px;color:var(--text3)}
+.cmd-ft{padding:9px 18px;border-top:1px solid var(--border);display:flex;gap:14px;font-size:11px;color:var(--text3)}
+.ck{display:inline-flex;align-items:center;gap:4px}
+kbd{background:var(--surface2);border:1px solid var(--border2);border-radius:5px;padding:1px 6px;font-family:monospace;font-size:11px}
+
+/* DEPR BAR */
+.db-wrap{display:flex;align-items:center;gap:9px}
+.db-pct{font-size:12px;font-weight:700;min-width:34px;text-align:right}
+
+@media(max-width:1100px){.gdb{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.mob{transform:translateX(0)}.main{margin-left:0}.g2,.g3,.gdb2{grid-template-columns:1fr}.fg2,.fg3{grid-template-columns:1fr}.content{padding:14px}}
+
+/* ── LOCK SCREEN ── */
+#loginScreen{position:fixed;inset:0;z-index:9000;background:linear-gradient(145deg,#0a0d18,#0d1220,#0a0f1a);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;padding-bottom:70px;overflow-y:auto;transition:opacity .5s ease,transform .5s ease}
+#loginScreen.hide{opacity:0;transform:scale(1.05);pointer-events:none}
+.login-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.login-bg-blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.2}
+.login-bg-blob.b1{width:600px;height:600px;background:radial-gradient(circle,#3b82f6,transparent);top:-120px;left:-100px}
+.login-bg-blob.b2{width:500px;height:500px;background:radial-gradient(circle,#8b5cf6,transparent);bottom:-80px;right:-80px}
+.login-bg-blob.b3{width:300px;height:300px;background:radial-gradient(circle,#10b981,transparent);top:50%;left:50%;transform:translate(-50%,-50%)}
+
+/* Brand */
+.lk-brand{text-align:center;position:relative;z-index:1;margin-bottom:48px}
+.lk-logo{width:64px;height:64px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:18px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:#fff;box-shadow:0 8px 32px rgba(59,130,246,.45);margin:0 auto 16px}
+.lk-title{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.04em;margin-bottom:4px}
+.lk-sub{font-size:12px;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace}
+
+/* Steps */
+.lk-step{position:relative;z-index:2;width:100%;max-width:480px;animation:lkIn .35s cubic-bezier(.4,0,.2,1);margin-bottom:12px}
+@keyframes lkIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.lk-prompt{text-align:center;font-size:14px;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:20px;letter-spacing:.03em;text-transform:uppercase}
+
+/* User cards grid */
+.lk-users{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.lk-ucard{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:18px;padding:22px 18px;width:140px;cursor:pointer;transition:all .22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;align-items:center;gap:9px;backdrop-filter:blur(12px)}
+.lk-ucard:hover{border-color:rgba(59,130,246,.7);background:rgba(59,130,246,.12);transform:translateY(-4px);box-shadow:0 12px 40px rgba(59,130,246,.2)}
+.lk-uav{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.lk-uname{font-size:13px;font-weight:700;color:#fff;text-align:center}
+.lk-urole{font-size:11px;color:rgba(255,255,255,.4);text-align:center}
+
+/* Selected user badge */
+.lk-sel-user{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px 18px;margin-bottom:32px;backdrop-filter:blur(12px)}
+.lk-sel-av{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;flex-shrink:0}
+.lk-sel-name{font-size:14px;font-weight:700;color:#fff}
+.lk-sel-role{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.lk-back{margin-left:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.6);border-radius:8px;padding:5px 13px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .2s}
+.lk-back:hover{background:rgba(255,255,255,.14);color:#fff}
+
+/* Slide-to-unlock track */
+.lk-track-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.lk-instruction{font-size:13px;color:rgba(255,255,255,.4);letter-spacing:.05em;font-weight:500;text-align:center;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.9}}
+
+.lk-track{position:relative;width:72px;height:240px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:99px;overflow:hidden;backdrop-filter:blur(12px);user-select:none;cursor:pointer}
+.lk-track-bg{position:absolute;inset:0;background:linear-gradient(to top,rgba(59,130,246,.18),transparent 70%);border-radius:99px}
+
+/* animated arrows */
+.lk-arrows{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;pointer-events:none}
+.lk-arrows span{font-size:14px;color:rgba(59,130,246,.5);animation:arrowUp 1.6s ease-in-out infinite}
+.lk-arrows span:nth-child(1){animation-delay:0s}
+.lk-arrows span:nth-child(2){animation-delay:.28s}
+.lk-arrows span:nth-child(3){animation-delay:.56s}
+@keyframes arrowUp{0%{opacity:0;transform:translateY(10px)}40%{opacity:1}80%{opacity:0;transform:translateY(-10px)}100%{opacity:0;transform:translateY(-10px)}}
+
+/* Handle */
+.lk-handle{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 20px rgba(59,130,246,.55),0 0 0 6px rgba(59,130,246,.15);transition:box-shadow .2s,background .2s;cursor:grab;z-index:2;touch-action:none}
+.lk-handle:active{cursor:grabbing}
+.lk-handle.unlocking{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 24px rgba(16,185,129,.7),0 0 0 8px rgba(16,185,129,.2)}
+.lk-track-label{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
+
+/* Footer */
+.lk-footer{position:absolute;bottom:20px;font-size:11px;color:rgba(255,255,255,.2);z-index:1}
+
+@media(max-width:500px){.lk-users{gap:10px}.lk-ucard{width:120px;padding:18px 12px}}
+
+/* Sign up card */
+.lk-ucard.signup-card{border-style:dashed;border-color:rgba(16,185,129,.35)}
+.lk-ucard.signup-card:hover{border-color:rgba(16,185,129,.7);background:rgba(16,185,129,.1)}
+.lk-auth-switch{text-align:center;margin-top:14px;font-size:12px;color:rgba(255,255,255,.4)}
+.lk-auth-switch button{background:none;border:none;color:rgba(59,130,246,.9);font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;text-decoration:underline;padding:4px 8px;position:relative;z-index:3}
+.lk-signup-back{display:flex;justify-content:flex-start;margin-bottom:14px}
+.lk-conn{font-size:10px;margin-top:6px;font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="loginScreen">
+  <div class="login-bg">
+    <div class="login-bg-blob b1"></div>
+    <div class="login-bg-blob b2"></div>
+    <div class="login-bg-blob b3"></div>
+  </div>
+
+  <!-- App info -->
+  <div class="lk-brand">
+    <div class="lk-logo">A</div>
+    <div class="lk-title">AMS Pro</div>
+    <div class="lk-sub">Asset Management System · v2.0</div>
+  </div>
+
+  <!-- User picker step -->
+  <div id="stepPicker" class="lk-step">
+    <div class="lk-prompt">Select your account</div>
+    <div class="lk-users" id="userCards"></div>
+  </div>
+
+  <!-- Slide-to-unlock step -->
+  <div id="stepSlide" class="lk-step" style="display:none">
+    <div class="lk-sel-user" id="selUserBadge">
+      <div class="lk-sel-av" id="selAv">AD</div>
+      <div>
+        <div class="lk-sel-name" id="selName">Admin User</div>
+        <div class="lk-sel-role" id="selRole">Super Admin</div>
+      </div>
+      <button class="lk-back" onclick="showPicker()">‹ Back</button>
+    </div>
+
+    <!-- Email + Password fields (shown after user card selected) -->
+    <div class="fg" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Email</label>
+      <input id="loginEmail" type="email" autocomplete="username"
+        style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none;transition:border-color .2s"
+        placeholder="admin@acme.in"
+        onfocus="this.style.borderColor='rgba(59,130,246,.7)'"
+        onblur="this.style.borderColor='rgba(255,255,255,.12)'"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    </div>
+    <div class="fg" style="margin-bottom:20px">
+      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password"
+        style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none;transition:border-color .2s"
+        placeholder="••••••••"
+        onfocus="this.style.borderColor='rgba(59,130,246,.7)'"
+        onblur="this.style.borderColor='rgba(255,255,255,.12)'"
+        onkeydown="if(event.key==='Enter')handleLoginClick()">
+    </div>
+
+    <!-- Slide track -->
+    <div class="lk-track-wrap">
+      <div class="lk-instruction">Slide up to sign in</div>
+      <div class="lk-track" id="slideTrack">
+        <div class="lk-track-bg"></div>
+        <div class="lk-arrows">
+          <span>↑</span><span>↑</span><span>↑</span>
+        </div>
+        <div class="lk-handle" id="slideHandle">
+          <span class="lk-lock-icon" id="lockIcon"><i data-lucide="lock" class="ico"></i></span>
+        </div>
+        <div class="lk-track-label">Slide up</div>
+      </div>
+    </div>
+
+    <!-- Forgot password link -->
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="handleForgotPassword()"
+        style="background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline">
+        Forgot password?
+      </button>
+    </div>
+    <div class="lk-auth-switch">
+      Don't have an account?
+      <button type="button" onclick="showSignup()">Create account</button>
+    </div>
+  </div>
+
+  <!-- Sign up step -->
+  <div id="stepSignup" class="lk-step" style="display:none">
+    <div class="lk-signup-back">
+      <button type="button" class="lk-back" onclick="showLogin()">‹ Back to sign in</button>
+    </div>
+    <div class="lk-prompt">Create your account</div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Full Name</label>
+      <input id="signupName" type="text" autocomplete="name"
+        style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none"
+        placeholder="John Doe"
+        onkeydown="if(event.key==='Enter')document.getElementById('signupEmail').focus()">
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Email</label>
+      <input id="signupEmail" type="email" autocomplete="email"
+        style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none"
+        placeholder="you@acme.in"
+        onkeydown="if(event.key==='Enter')document.getElementById('signupPassword').focus()">
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Department</label>
+      <select id="signupDept"
+        style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none">
+        <option value="">Select Department (optional)</option>
+      </select>
+    </div>
+    <div class="fg2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div class="fg" style="margin-bottom:0">
+        <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Password</label>
+        <input id="signupPassword" type="password" autocomplete="new-password"
+          style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none"
+          placeholder="Min. 8 characters"
+          onkeydown="if(event.key==='Enter')document.getElementById('signupConfirm').focus()">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label style="font-size:11px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:5px">Confirm</label>
+        <input id="signupConfirm" type="password" autocomplete="new-password"
+          style="width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none"
+          placeholder="Repeat password"
+          onkeydown="if(event.key==='Enter')handleSignupClick()">
+      </div>
+    </div>
+
+    <button type="button" onclick="handleSignupClick()"
+      style="width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(16,185,129,.35);transition:transform .15s"
+      onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+      <span id="signupLockIcon"><i data-lucide="user-plus" class="ico"></i></span> Create Account
+    </button>
+
+    <div class="lk-auth-switch">
+      Already have an account?
+      <button type="button" onclick="showLogin()">Sign in</button>
+    </div>
+  </div>
+
+  <div class="lk-footer">© 2026 AMS Pro · Acme Corp Pvt. Ltd.<br><span id="connStatus" class="lk-conn" style="color:rgba(255,255,255,.3)">● Checking...</span></div>
+</div>
+<!-- END LOCK SCREEN -->
+
+<div class="cmd-ov" id="cmdPal">
+  <div class="cmd-box">
+    <div class="cmd-ir">
+      <span style="font-size:17px;color:var(--text3)">⌘</span>
+      <input class="cmd-in" id="cmdIn" placeholder="Search or run a command…" autocomplete="off">
+      <button class="btn btn-ghost" style="height:28px;padding:0 10px;font-size:11px" onclick="closeCmd()">Esc</button>
+    </div>
+    <div class="cmd-res" id="cmdRes"></div>
+    <div class="cmd-ft">
+      <span class="ck"><kbd>↑↓</kbd> Navigate</span>
+      <span class="ck"><kbd>↵</kbd> Select</span>
+      <span class="ck"><kbd>Esc</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toastWrap"></div>
+
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-mark">A</div>
+    <div class="logo-text">
+      <div class="logo-title">AMS Pro</div>
+      <div class="logo-sub">v2.0 · Admin</div>
+    </div>
+    <button class="sb-toggle" id="sbBtn" onclick="toggleSB()">‹</button>
+  </div>
+  <div class="sb-scroll">
+    <div class="nsec">Overview</div>
+    <div class="nitem active" id="n-dashboard" onclick="nav('dashboard')"><span class="nicon"><i data-lucide="layout-dashboard" class="ico"></i></span><span class="nlabel">Dashboard</span></div>
+    <div class="nitem" id="n-assets" onclick="nav('assets')"><span class="nicon"><i data-lucide="package" class="ico"></i></span><span class="nlabel">Assets</span><span class="nbadge b-blue" id="sb-badge">10</span></div>
+    <div class="nitem" id="n-employees" onclick="nav('employees')"><span class="nicon"><i data-lucide="users" class="ico"></i></span><span class="nlabel">Employees</span></div>
+    <div class="nsec">Operations</div>
+    <div class="nitem" id="n-allocation" onclick="nav('allocation')"><span class="nicon"><i data-lucide="arrow-left-right" class="ico"></i></span><span class="nlabel">Allocation</span></div>
+    <div class="nitem" id="n-maintenance" onclick="nav('maintenance')"><span class="nicon"><i data-lucide="wrench" class="ico"></i></span><span class="nlabel">Maintenance</span><span class="nbadge">3</span></div>
+    <div class="nitem" id="n-vendors" onclick="nav('vendors')"><span class="nicon"><i data-lucide="building-2" class="ico"></i></span><span class="nlabel">Vendors</span></div>
+    <div class="nsec">Analytics</div>
+    <div class="nitem" id="n-reports" onclick="nav('reports')"><span class="nicon"><i data-lucide="bar-chart-3" class="ico"></i></span><span class="nlabel">Reports</span></div>
+    <div class="nitem" id="n-depreciation" onclick="nav('depreciation')"><span class="nicon"><i data-lucide="trending-down" class="ico"></i></span><span class="nlabel">Depreciation</span></div>
+    <div class="nsec">System</div>
+    <div class="nitem" id="n-notifications" onclick="nav('notifications')"><span class="nicon"><i data-lucide="bell" class="ico"></i></span><span class="nlabel">Notifications</span><span class="nbadge b-yellow">4</span></div>
+    <div class="nitem" id="n-audit" onclick="nav('audit')"><span class="nicon"><i data-lucide="clipboard-list" class="ico"></i></span><span class="nlabel">Audit Trail</span></div>
+    <div class="nitem" id="n-settings" onclick="nav('settings')"><span class="nicon"><i data-lucide="settings" class="ico"></i></span><span class="nlabel">Settings</span></div>
+    <div class="nitem" onclick="doLogout()"><span class="nicon"><i data-lucide="log-out" class="ico"></i></span><span class="nlabel">Logout</span></div>
+  </div>
+</aside>
+
+<div class="main" id="main">
+  <div class="topbar">
+    <div class="tb-bc"><span>AMS</span><span class="sep">/</span><span class="cur" id="bc">Dashboard</span></div>
+    <div class="tb-search">
+      <span class="sicon"><i data-lucide="search" class="ico"></i></span>
+      <input type="text" placeholder="Search assets, employees…" id="gSearch" oninput="doSearch(this.value)" onfocus="doSearch(this.value)" autocomplete="off">
+      <div class="sresults" id="sRes"></div>
+    </div>
+    <div class="tb-actions">
+      <button class="iBtn" onclick="openCmd()" title="Command Palette (Ctrl+K)"><i data-lucide="command" class="ico"></i></button>
+      <div class="theme-sw">
+        <div class="th-opt on" id="td" onclick="setTheme('dark')" title="Dark"><i data-lucide="moon" class="ico"></i></div>
+        <div class="th-opt" id="tl" onclick="setTheme('light')" title="Light"><i data-lucide="sun" class="ico"></i></div>
+        <div class="th-opt" id="ts" onclick="setTheme('system')" title="System"><i data-lucide="monitor" class="ico"></i></div>
+      </div>
+      <button class="iBtn" onclick="nav('notifications')" title="Notifications"><i data-lucide="bell" class="ico"></i><span class="ndot"></span></button>
+      <button class="btn btn-primary" data-perm="register_assets" onclick="openM('addAsset')">+ Add Asset</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="alert alert-warn"><i data-lucide="alert-triangle" class="ico" style="width:16px;height:16px;flex-shrink:0"></i> <b>4 warranties</b> expiring within 30 days · 3 maintenance requests pending approval <span style="margin-left:auto;cursor:pointer;text-decoration:underline" onclick="nav('notifications')">Review →</span></div>
+    <div class="stats">
+      <div class="sc" onclick="nav('assets')"><div class="sc-icon bg-blue"><i data-lucide="package" class="ico"></i></div><div class="sc-delta du">+1 this month</div><div class="sc-val c-blue" id="stat-total">10</div><div class="sc-lbl">Total Assets</div><div class="sbar"><div class="sbf" style="width:100%;background:var(--accent)"></div></div></div>
+      <div class="sc" onclick="fNav('available')"><div class="sc-icon bg-green"><i data-lucide="check-circle" class="ico"></i></div><div class="sc-delta du">+1 returned</div><div class="sc-val c-green" id="stat-available">2</div><div class="sc-lbl">Available</div><div class="sbar"><div class="sbf" id="sbar-available" style="width:20%;background:var(--green)"></div></div></div>
+      <div class="sc" onclick="fNav('inuse')"><div class="sc-icon bg-purple"><i data-lucide="monitor" class="ico"></i></div><div class="sc-delta du">+1 assigned</div><div class="sc-val c-purple" id="stat-inuse">5</div><div class="sc-lbl">In Use</div><div class="sbar"><div class="sbf" id="sbar-inuse" style="width:50%;background:var(--purple)"></div></div></div>
+      <div class="sc" onclick="fNav('repair')"><div class="sc-icon bg-yellow"><i data-lucide="wrench" class="ico"></i></div><div class="sc-delta dd">Active repairs</div><div class="sc-val c-yellow" id="stat-repair">2</div><div class="sc-lbl">Under Maintenance</div><div class="sbar"><div class="sbf" id="sbar-repair" style="width:20%;background:var(--yellow)"></div></div></div>
+      <div class="sc" onclick="fNav('disposed')"><div class="sc-icon bg-red"><i data-lucide="trash-2" class="ico"></i></div><div class="sc-delta du">+0 this month</div><div class="sc-val c-red" id="stat-disposed">1</div><div class="sc-lbl">Disposed</div><div class="sbar"><div class="sbf" id="sbar-disposed" style="width:10%;background:var(--red)"></div></div></div>
+      <div class="sc" onclick="nav('reports')"><div class="sc-icon bg-orange"><i data-lucide="alert-triangle" class="ico"></i></div><div class="sc-delta dd">Expiring soon</div><div class="sc-val c-orange">4</div><div class="sc-lbl">Warranty Expiring</div><div class="sbar"><div class="sbf" style="width:2%;background:var(--orange)"></div></div></div>
+    </div>
+    <div class="gdb mb20">
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Recent Assets</span><button class="btn btn-ghost btn-sm" onclick="nav('assets')">View All</button></div>
+        <div class="card-body p0 tbl-wrap">
+          <table><thead><tr><th>Asset</th><th>ID</th><th>Assigned To</th><th>Dept</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><b>Dell Inspiron Laptop</b></td><td class="mono">AST-001</td><td>Rahul Sharma</td><td>Engineering</td><td><span class="badge badge-inuse">In Use</span></td></tr>
+            <tr><td><b>HP LaserJet Printer</b></td><td class="mono">AST-002</td><td>—</td><td>Finance</td><td><span class="badge badge-available">Available</span></td></tr>
+            <tr><td><b>Cisco Router 2900</b></td><td class="mono">AST-003</td><td>IT Dept</td><td>IT</td><td><span class="badge badge-repair">Repair</span></td></tr>
+            <tr><td><b>ThinkPad X1 Carbon</b></td><td class="mono">AST-004</td><td>Priya Mehta</td><td>HR</td><td><span class="badge badge-inuse">In Use</span></td></tr>
+            <tr><td><b>MacBook Pro 14"</b></td><td class="mono">AST-005</td><td>Amit Kumar</td><td>Design</td><td><span class="badge badge-inuse">In Use</span></td></tr>
+            <tr><td><b>Epson Projector EH</b></td><td class="mono">AST-006</td><td>—</td><td>Conference</td><td><span class="badge badge-available">Available</span></td></tr>
+          </tbody></table>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Distribution</span></div>
+          <div class="card-body" style="text-align:center">
+            <svg viewBox="0 0 120 120" width="120" height="120" style="display:block;margin:0 auto 14px">
+              <circle cx="60" cy="60" r="48" fill="none" stroke="var(--border2)" stroke-width="18"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="var(--purple)" stroke-width="18" stroke-dasharray="193 109" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="var(--green)" stroke-width="18" stroke-dasharray="108 194" stroke-dashoffset="-193" transform="rotate(-90 60 60)"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="var(--yellow)" stroke-width="18" stroke-dasharray="64 238" stroke-dashoffset="-301" transform="rotate(-90 60 60)"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="var(--red)" stroke-width="18" stroke-dasharray="37 265" stroke-dashoffset="-365" transform="rotate(-90 60 60)"/>
+              <text x="60" y="57" text-anchor="middle" font-size="16" font-weight="800" fill="var(--text)" font-family="Plus Jakarta Sans" id="donut-total">10</text>
+              <text x="60" y="68" text-anchor="middle" font-size="8" fill="var(--text2)" font-family="Plus Jakarta Sans">Total</text>
+            </svg>
+            <div style="display:flex;flex-direction:column;gap:6px;text-align:left">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:9px;height:9px;border-radius:3px;background:var(--purple);flex-shrink:0"></span><span style="flex:1;color:var(--text2)">In Use</span><b id="donut-pct-inuse">50%</b></div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:9px;height:9px;border-radius:3px;background:var(--green);flex-shrink:0"></span><span style="flex:1;color:var(--text2)">Available</span><b id="donut-pct-available">20%</b></div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:9px;height:9px;border-radius:3px;background:var(--yellow);flex-shrink:0"></span><span style="flex:1;color:var(--text2)">Maintenance</span><b id="donut-pct-repair">20%</b></div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:9px;height:9px;border-radius:3px;background:var(--red);flex-shrink:0"></span><span style="flex:1;color:var(--text2)">Disposed</span><b id="donut-pct-disposed">10%</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">By Category</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Laptops</span><b>78</b></div><div class="prog"><div class="prog-f" style="width:78%;background:var(--accent)"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Networking</span><b>45</b></div><div class="prog"><div class="prog-f" style="width:45%;background:var(--purple)"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Printers</span><b>32</b></div><div class="prog"><div class="prog-f" style="width:32%;background:var(--teal)"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Furniture</span><b>52</b></div><div class="prog"><div class="prog-f" style="width:52%;background:var(--orange)"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Others</span><b>40</b></div><div class="prog"><div class="prog-f" style="width:40%;background:var(--yellow)"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="gdb2">
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Asset Lifecycle — AST-004 ThinkPad X1</span></div>
+        <div class="card-body">
+          <div>
+            <div class="lc-step done"><div class="lc-ind"><div class="lc-circ">✓</div><div class="lc-ln"></div></div><div class="lc-body"><h4>Purchase Asset</h4><p>Procured from Dell India · ₹1,25,000</p></div></div>
+            <div class="lc-step done"><div class="lc-ind"><div class="lc-circ">✓</div><div class="lc-ln"></div></div><div class="lc-body"><h4>Registered in System</h4><p>ID: AST-004 · Feb 1, 2024</p></div></div>
+            <div class="lc-step cur"><div class="lc-ind"><div class="lc-circ">3</div><div class="lc-ln"></div></div><div class="lc-body"><h4>Assigned to Employee</h4><p>Priya Mehta · HR Department</p></div></div>
+            <div class="lc-step todo"><div class="lc-ind"><div class="lc-circ">4</div><div class="lc-ln"></div></div><div class="lc-body"><h4>Track & Maintain</h4><p>Annual service due Dec 2024</p></div></div>
+            <div class="lc-step todo"><div class="lc-ind"><div class="lc-circ">5</div><div class="lc-ln"></div></div><div class="lc-body"><h4>Return / Reassign</h4><p>—</p></div></div>
+            <div class="lc-step todo"><div class="lc-ind"><div class="lc-circ">6</div></div><div class="lc-body"><h4>Dispose / Replace</h4><p>—</p></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Recent Activity</span><button class="btn btn-ghost btn-sm" onclick="nav('audit')">Full Log</button></div>
+        <div class="card-body p0" style="max-height:360px;overflow-y:auto">
+          <div style="padding:10px 18px">
+            <div class="af-item"><div class="af-dc"><div class="af-dot" style="background:var(--green)"></div><div class="af-line"></div></div><div><div class="af-txt">AST-004 assigned to <b>Priya Mehta</b> (HR)</div><div class="af-meta"><span class="af-time">Today, 10:42 AM</span><span class="af-tag">Assignment</span></div></div></div>
+            <div class="af-item"><div class="af-dc"><div class="af-dot" style="background:var(--yellow)"></div><div class="af-line"></div></div><div><div class="af-txt">AST-003 sent for <b>maintenance</b> — Cisco Router ports</div><div class="af-meta"><span class="af-time">Today, 09:15 AM</span><span class="af-tag">🔧 Maintenance</span></div></div></div>
+            <div class="af-item"><div class="af-dc"><div class="af-dot" style="background:var(--accent)"></div><div class="af-line"></div></div><div><div class="af-txt">New asset <b>AST-010</b> registered — Dell Server R740</div><div class="af-meta"><span class="af-time">Yesterday, 4:30 PM</span><span class="af-tag">Registration</span></div></div></div>
+            <div class="af-item"><div class="af-dc"><div class="af-dot" style="background:var(--red)"></div><div class="af-line"></div></div><div><div class="af-txt">AST-008 <b>disposed</b> — Dell PowerEdge EOL</div><div class="af-meta"><span class="af-time">Yesterday, 2:00 PM</span><span class="af-tag">Disposal</span></div></div></div>
+            <div class="af-item"><div class="af-dc"><div class="af-dot" style="background:var(--green)"></div></div><div><div class="af-txt">AST-002 returned by <b>Finance Dept</b></div><div class="af-meta"><span class="af-time">Jun 5, 11:00 AM</span><span class="af-tag">↩ Return</span></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASSETS -->
+  <div class="page" id="page-assets">
+    <div class="phd">
+      <div class="phd-l"><h2>Assets</h2><p>Full inventory with lifecycle tracking</p></div>
+      <div class="phd-r">
+        <button class="btn btn-ghost" data-perm="export_reports" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-ghost" onclick="openM('qr')">📷 QR Scanner</button>
+      </div>
+    </div>
+    <div class="chips">
+      <button class="chip on" id="chip-all" onclick="fA('all',this)">All <span id="chip-cnt-all">(10)</span></button>
+      <button class="chip" id="chip-available" onclick="fA('available',this)">Available <span id="chip-cnt-available">(2)</span></button>
+      <button class="chip" id="chip-inuse" onclick="fA('inuse',this)">In Use <span id="chip-cnt-inuse">(5)</span></button>
+      <button class="chip" id="chip-repair" onclick="fA('repair',this)">Under Repair <span id="chip-cnt-repair">(2)</span></button>
+      <button class="chip" id="chip-disposed" onclick="fA('disposed',this)">Disposed <span id="chip-cnt-disposed">(1)</span></button>
+      <select class="btn btn-ghost btn-sm" style="margin-left:auto;cursor:pointer" onchange="toast('info','Filter','Category: '+this.value)"><option>All Categories</option><option>Laptops</option><option>Desktops</option><option>Printers</option><option>Servers</option><option>Networking</option><option>Furniture</option><option>AC Units</option><option>Projectors</option></select>
+    </div>
+    <div class="bulk-bar" id="bulkBar"><span id="bulkCnt">0</span> assets selected<div class="bb-actions"><button class="btn btn-ghost btn-sm" onclick="toast('info','Bulk Assign','Opening assign dialog…')">Assign</button><button class="btn btn-ghost btn-sm" onclick="toast('info','Export','Exporting selected…')">Export</button><button class="btn btn-danger btn-sm" onclick="toast('warning','Bulk Dispose','Requires confirmation')">Dispose</button><button class="btn btn-ghost btn-sm" onclick="clearSel()">✕ Clear</button></div></div>
+    <div class="card"><div class="card-body p0 tbl-wrap"><table><thead><tr><th class="tck"><input type="checkbox" id="selAll" onchange="selAllTog(this)"></th><th>Asset ID</th><th>Name</th><th>Category</th><th>Serial No.</th><th>Department</th><th>Assigned To</th><th>Purchase Date</th><th>Warranty</th><th>Value (₹)</th><th>Status</th><th>Actions</th></tr></thead><tbody id="atbody"></tbody></table></div></div>
+  </div>
+
+  <!-- EMPLOYEES -->
+  <div class="page" id="page-employees">
+    <div class="phd"><div class="phd-l"><h2>Employees</h2><p>Employee-wise asset allocation management</p></div><div class="phd-r"><button class="btn btn-ghost" data-perm="export_reports">⬇ Export</button><button class="btn btn-primary" data-perm="manage_employees" onclick="openM('addEmp')">+ Add Employee</button></div></div>
+    <div class="card"><div class="card-body p0 tbl-wrap"><table><thead><tr><th>User ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Email</th><th>Phone</th><th>Assets</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="empTbody">
+      <tr><td class="mono">USR-001</td><td><b>Rahul Sharma</b></td><td>Engineering</td><td>Senior Developer</td><td>rahul@acme.in</td><td>+91-98765-43210</td><td><span class="badge badge-inuse">2 assets</span></td><td><span class="badge badge-admin">Admin</span></td><td><span class="badge badge-active">Active</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-xs" onclick="toast('info','Assets','Loading Rahul\'s assets…')">View Assets</button></td></tr>
+      <tr><td class="mono">USR-002</td><td><b>Priya Mehta</b></td><td>HR</td><td>HR Manager</td><td>priya@acme.in</td><td>+91-98765-43211</td><td><span class="badge badge-inuse">1 asset</span></td><td><span class="badge badge-inactive">User</span></td><td><span class="badge badge-active">Active</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-xs">View Assets</button></td></tr>
+      <tr><td class="mono">USR-003</td><td><b>Amit Kumar</b></td><td>Design</td><td>UI/UX Lead</td><td>amit@acme.in</td><td>+91-98765-43212</td><td><span class="badge badge-inuse">1 asset</span></td><td><span class="badge badge-inactive">User</span></td><td><span class="badge badge-active">Active</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-xs">View Assets</button></td></tr>
+      <tr><td class="mono">USR-004</td><td><b>Sneha Rao</b></td><td>Finance</td><td>Accountant</td><td>sneha@acme.in</td><td>+91-98765-43213</td><td><span class="badge badge-available">0 assets</span></td><td><span class="badge badge-inactive">User</span></td><td><span class="badge badge-active">Active</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-xs">View Assets</button></td></tr>
+      <tr><td class="mono">USR-005</td><td><b>Vikram Nair</b></td><td>IT</td><td>Network Admin</td><td>vikram@acme.in</td><td>+91-98765-43214</td><td><span class="badge badge-inuse">3 assets</span></td><td><span class="badge badge-admin">Admin</span></td><td><span class="badge badge-active">Active</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-xs">View Assets</button></td></tr>
+      <tr><td class="mono">USR-006</td><td><b>Deepa Iyer</b></td><td>Operations</td><td>Operations Head</td><td>deepa@acme.in</td><td>+91-98765-43215</td><td><span class="badge badge-available">0 assets</span></td><td><span class="badge badge-inactive">User</span></td><td><span class="badge badge-inactive">Inactive</span></td><td style="display:flex;gap:5px"><button class="btn btn-ghost btn-xs">View Assets</button></td></tr>
+    </tbody></table></div></div>
+  </div>
+
+  <!-- ALLOCATION -->
+  <div class="page" id="page-allocation">
+    <div class="phd"><div class="phd-l"><h2>Allocation</h2><p>Asset issue and return tracking</p></div><div class="phd-r"><button class="btn btn-success" data-perm="assign_assets" onclick="openM('issueAsset')">⬆ Issue Asset</button><button class="btn btn-ghost" data-perm="request_return" onclick="openM('returnAsset')">⬇ Return Asset</button></div></div>
+    <div class="tabs"><div class="tab on" onclick="switchTab(this,'alc-a')">Active Allocations</div><div class="tab" onclick="switchTab(this,'alc-h')">Return History</div></div>
+    <div id="alc-a"><div class="card"><div class="card-body p0 tbl-wrap"><table><thead><tr><th>Issue ID</th><th>Asset</th><th>Issued To</th><th>Department</th><th>Issue Date</th><th>Expected Return</th><th>Days Used</th><th>Condition</th><th>Actions</th></tr></thead><tbody>
+      <tr><td class="mono">ISS-001</td><td>Dell Inspiron (AST-001)</td><td>Rahul Sharma</td><td>Engineering</td><td>2024-01-15</td><td>2025-01-15</td><td><b class="c-orange">508 days</b></td><td><span class="badge badge-active">Good</span></td><td><button class="btn btn-ghost btn-xs" onclick="toast('success','Return Initiated','Processing return for AST-001')">Return</button></td></tr>
+      <tr><td class="mono">ISS-002</td><td>ThinkPad X1 (AST-004)</td><td>Priya Mehta</td><td>HR</td><td>2024-02-01</td><td>2025-02-01</td><td><b class="c-green">491 days</b></td><td><span class="badge badge-active">Good</span></td><td><button class="btn btn-ghost btn-xs" onclick="toast('success','Return Initiated','Processing return for AST-004')">Return</button></td></tr>
+      <tr><td class="mono">ISS-003</td><td>MacBook Pro (AST-005)</td><td>Amit Kumar</td><td>Design</td><td>2023-11-10</td><td>2024-11-10</td><td><b class="c-red">574 days</b></td><td><span class="badge badge-repair">Fair</span></td><td><button class="btn btn-ghost btn-xs" onclick="toast('success','Return Initiated','Processing return for AST-005')">Return</button></td></tr>
+    </tbody></table></div></div></div>
+    <div id="alc-h" style="display:none"><div class="card"><div class="card-body p0 tbl-wrap"><table><thead><tr><th>Return ID</th><th>Asset</th><th>Returned By</th><th>Issue Date</th><th>Return Date</th><th>Duration</th><th>Condition</th></tr></thead><tbody>
+      <tr><td class="mono">RET-001</td><td>HP Printer (AST-002)</td><td>Finance Dept</td><td>2025-01-10</td><td>2026-06-05</td><td>511 days</td><td><span class="badge badge-active">Good</span></td></tr>
+      <tr><td class="mono">RET-002</td><td>Dell Laptop (AST-009)</td><td>Sneha Rao</td><td>2025-03-01</td><td>2026-05-15</td><td>440 days</td><td><span class="badge badge-repair">Fair</span></td></tr>
+    </tbody></table></div></div></div>
+  </div>
+
+  <!-- MAINTENANCE -->
+  <div class="page" id="page-maintenance">
+    <div class="phd"><div class="phd-l"><h2>Maintenance</h2><p>Service history and repair tracking</p></div><div class="phd-r"><button class="btn btn-primary" data-perm="log_maintenance" onclick="openM('addMaint')">+ Log Maintenance</button></div></div>
+    <div class="g4 mb20">
+      <div class="sc"><div class="sc-icon bg-yellow">🔧</div><div class="sc-val c-yellow">3</div><div class="sc-lbl">In Progress</div></div>
+      <div class="sc"><div class="sc-icon bg-green"><i data-lucide="check-circle" class="ico"></i></div><div class="sc-val c-green">12</div><div class="sc-lbl">Completed (YTD)</div></div>
+      <div class="sc"><div class="sc-icon bg-orange"><i data-lucide="clock" class="ico"></i></div><div class="sc-val c-orange">2</div><div class="sc-lbl">Pending Approval</div></div>
+      <div class="sc"><div class="sc-icon bg-red">₹</div><div class="sc-val c-red" style="font-size:20px">82,400</div><div class="sc-lbl">Maintenance Cost (YTD)</div></div>
+    </div>
+    <div class="g2">
+      <div class="mcard"><div class="mcard-hd"><div><div class="mcard-name">Cisco Router 2900</div><div class="mcard-id">AST-003 · IT</div></div><span class="badge badge-repair">In Progress</span></div><div class="mcard-body">Network ports malfunctioning. Sent to ServicePoint IT Solutions. Est. cost ₹12,000.</div><div class="mcard-ft"><span class="mcard-date">📅 Jun 1, 2026</span><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs">History</button><button class="btn btn-success btn-xs" onclick="toast('success','Done','Maintenance marked complete')">Mark Done</button></div></div></div>
+      <div class="mcard"><div class="mcard-hd"><div><div class="mcard-name">Voltas AC 1.5 Ton</div><div class="mcard-id">AST-007 · Operations</div></div><span class="badge badge-repair">In Progress</span></div><div class="mcard-body">Gas leakage reported. Voltas authorized service. Est. return Jun 15. Cost ₹8,500.</div><div class="mcard-ft"><span class="mcard-date">📅 May 28, 2026</span><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs">History</button><button class="btn btn-success btn-xs" onclick="toast('success','Done','AC maintenance completed')">Mark Done</button></div></div></div>
+      <div class="mcard"><div class="mcard-hd"><div><div class="mcard-name">Dell Inspiron Laptop</div><div class="mcard-id">AST-001 · Engineering</div></div><span class="badge badge-pending">Pending Approval</span></div><div class="mcard-body">Battery replacement and SSD upgrade requested. Pending admin approval. Est. cost ₹15,000.</div><div class="mcard-ft"><span class="mcard-date">📅 Jun 6, 2026</span><div style="display:flex;gap:6px"><button class="btn btn-success btn-xs" onclick="toast('success','Approved','Request approved')">Approve</button><button class="btn btn-danger btn-xs" onclick="toast('error','Rejected','Request rejected')">Reject</button></div></div></div>
+      <div class="mcard"><div class="mcard-hd"><div><div class="mcard-name">HP LaserJet Printer</div><div class="mcard-id">AST-002 · Finance</div></div><span class="badge badge-done">Completed</span></div><div class="mcard-body">Drum unit replaced, print head cleaned. Annual maintenance complete. Cost ₹4,200.</div><div class="mcard-ft"><span class="mcard-date">📅 Apr 10, 2026</span><div><button class="btn btn-ghost btn-xs">View Report</button></div></div></div>
+    </div>
+  </div>
+
+  <!-- VENDORS -->
+  <div class="page" id="page-vendors">
+    <div class="phd"><div class="phd-l"><h2>Vendors</h2><p>Supplier and service partner directory</p></div><div class="phd-r"><button class="btn btn-primary" data-perm="manage_vendors" onclick="openM('addVendor')">+ Add Vendor</button></div></div>
+    <div class="gauto">
+      <div class="vcard"><div class="vcard-logo">DL</div><div class="vcard-name">Dell India Pvt. Ltd.</div><div class="vcard-id">VND-001</div><div class="vcard-info">Tel: 1800-425-1111</div><div class="vcard-info">support@dell.in</div><div class="vcard-info">Bengaluru, Karnataka</div><div class="vcard-tags"><span class="vcard-tag">Laptops</span><span class="vcard-tag">Servers</span><span class="vcard-tag">Monitors</span></div><div style="margin-top:12px;display:flex;gap:6px"><button class="btn btn-ghost btn-xs">Edit</button><button class="btn btn-ghost btn-xs" onclick="toast('info','Dell India','89 linked assets')">View Assets</button></div></div>
+      <div class="vcard"><div class="vcard-logo">CS</div><div class="vcard-name">Cisco Systems India</div><div class="vcard-id">VND-002</div><div class="vcard-info">Tel: 1800-103-7723</div><div class="vcard-info">india@cisco.com</div><div class="vcard-info">Mumbai, Maharashtra</div><div class="vcard-tags"><span class="vcard-tag">Routers</span><span class="vcard-tag">Switches</span><span class="vcard-tag">Networking</span></div><div style="margin-top:12px;display:flex;gap:6px"><button class="btn btn-ghost btn-xs">Edit</button><button class="btn btn-ghost btn-xs">View Assets</button></div></div>
+      <div class="vcard"><div class="vcard-logo">HP</div><div class="vcard-name">HP India Solutions</div><div class="vcard-id">VND-003</div><div class="vcard-info">Tel: 1800-108-4747</div><div class="vcard-info">support@hp.in</div><div class="vcard-info">Hyderabad, Telangana</div><div class="vcard-tags"><span class="vcard-tag">Printers</span><span class="vcard-tag">Laptops</span><span class="vcard-tag">Accessories</span></div><div style="margin-top:12px;display:flex;gap:6px"><button class="btn btn-ghost btn-xs">Edit</button><button class="btn btn-ghost btn-xs">View Assets</button></div></div>
+      <div class="vcard"><div class="vcard-logo">SP</div><div class="vcard-name">ServicePoint IT</div><div class="vcard-id">VND-004</div><div class="vcard-info">Tel: +91-40-23456789</div><div class="vcard-info">service@sp.in</div><div class="vcard-info">Hyderabad, Telangana</div><div class="vcard-tags"><span class="vcard-tag">Repair</span><span class="vcard-tag">AMC</span><span class="vcard-tag">Maintenance</span></div><div style="margin-top:12px;display:flex;gap:6px"><button class="btn btn-ghost btn-xs">Edit</button><button class="btn btn-ghost btn-xs">View Assets</button></div></div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="page" id="page-reports">
+    <div class="phd"><div class="phd-l"><h2>Reports</h2><p>Generate, schedule and export reports</p></div><div class="phd-r"><button class="btn btn-ghost" data-perm="export_reports" onclick="toast('info','Scheduler','Report scheduler opened')">Schedule</button><button class="btn btn-primary" data-perm="export_reports" id="exportPdfBtn" onclick="exportFullReportPDF()">Export PDF</button></div></div>
+    <div class="g3 mb20">
+      <div class="rcard" onclick="runReport('asset_summary')"><div class="rcard-icon"><i data-lucide="check-circle" class="ico"></i></div><div class="rcard-name">Available Assets</div><div class="rcard-desc">All unassigned assets ready for deployment</div></div>
+      <div class="rcard" onclick="runReport('allocation')"><div class="rcard-icon"><i data-lucide="users" class="ico"></i></div><div class="rcard-name">Assigned Assets</div><div class="rcard-desc">Employee-wise allocation breakdown</div></div>
+      <div class="rcard" onclick="runReport('maintenance')"><div class="rcard-icon"><i data-lucide="wrench" class="ico"></i></div><div class="rcard-name">Faulty / Under Repair</div><div class="rcard-desc">Assets currently out of service</div></div>
+      <div class="rcard" onclick="nav('depreciation')"><div class="rcard-icon"><i data-lucide="trending-down" class="ico"></i></div><div class="rcard-name">Depreciation</div><div class="rcard-desc">Financial value depreciation by asset type</div></div>
+      <div class="rcard" onclick="runReport('warranty_expiry')"><div class="rcard-icon"><i data-lucide="shield" class="ico"></i></div><div class="rcard-name">Warranty Expiry</div><div class="rcard-desc">Upcoming and expired warranties</div></div>
+      <div class="rcard" onclick="nav('audit')"><div class="rcard-icon"><i data-lucide="clipboard-list" class="ico"></i></div><div class="rcard-name">Audit Trail</div><div class="rcard-desc">Full system action log</div></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-title">Disposal History</span><button class="btn btn-ghost btn-sm" onclick="runReport('asset_summary')">Export</button></div>
+      <div class="card-body p0 tbl-wrap"><table><thead><tr><th>Asset ID</th><th>Name</th><th>Type</th><th>Purchase Value</th><th>Salvage Value</th><th>Disposed On</th><th>Reason</th><th>Approved By</th></tr></thead><tbody>
+        <tr><td class="mono">AST-008</td><td>Dell PowerEdge Server</td><td>Server</td><td>₹3,20,000</td><td>₹12,000</td><td>Jun 4, 2026</td><td>End of Life</td><td>Admin</td></tr>
+        <tr><td class="mono">AST-012</td><td>Samsung Monitor 24"</td><td>Monitor</td><td>₹28,000</td><td>₹500</td><td>Apr 20, 2026</td><td>Beyond Repair</td><td>Admin</td></tr>
+        <tr><td class="mono">AST-015</td><td>Epson Scanner</td><td>Scanner</td><td>₹18,000</td><td>₹0</td><td>Mar 11, 2026</td><td>Obsolete</td><td>IT Head</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <!-- DEPRECIATION -->
+  <div class="page" id="page-depreciation">
+    <div class="phd"><div class="phd-l"><h2>Depreciation</h2><p>Straight-line asset value tracking</p></div>
+    <div class="phd-r"><button class="btn btn-ghost" data-perm="export_reports" onclick="runReport('depreciation')">Export</button></div></div>
+    <div class="alert alert-info mb20">Using Straight-Line Depreciation. Useful life: 3–5 years by category.</div>
+    <div class="card"><div class="card-body p0 tbl-wrap">
+      <table>
+        <thead><tr><th>Asset ID</th><th>Name</th><th>Category</th><th>Purchase Date</th><th>Original Value</th><th>Current Value</th><th>Remaining Value</th><th>Rate</th></tr></thead>
+        <tbody id="deprTbody"></tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="page" id="page-notifications">
+    <div class="phd">
+      <div class="phd-l"><h2>Notifications</h2><p>Alerts, warranties, and system messages</p></div>
+      <div class="phd-r">
+        <button class="btn btn-ghost" id="markAllReadBtn" style="display:none" onclick="markAllNotificationsRead()">✓ Mark All Read</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" id="notifContainer" style="padding:10px 18px">
+        <div style="text-align:center;padding:40px;color:var(--text3)">Loading notifications...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT -->
+  <div class="page" id="page-audit">
+    <div class="phd"><div class="phd-l"><h2>Audit Trail</h2><p>Complete system action log with user tracking</p></div><div class="phd-r"><button class="btn btn-ghost" onclick="downloadCSV && window.AMS?.reports?.loadAuditLogs ? toast('info','Export','Use Reports page for full audit export') : null">⬇ Export Log</button></div></div>
+    <div class="card"><div class="card-body p0 tbl-wrap">
+      <table>
+        <thead><tr><th>Time</th><th>Action</th><th>Entity</th><th>Details</th><th>User</th><th>Record ID</th></tr></thead>
+        <tbody id="auditTbody"></tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="phd"><div class="phd-l"><h2>Settings</h2><p>System configuration and preferences</p></div></div>
+    <div class="tabs">
+      <div class="tab on" onclick="switchTab(this,'st-gen')">General</div>
+      <div class="tab" onclick="switchTab(this,'st-notif')">Notifications</div>
+      <div class="tab" onclick="switchTab(this,'st-roles')">Roles & Access</div>
+      <div class="tab" onclick="switchTab(this,'st-backup')">Backup & Restore</div>
+    </div>
+    <div id="st-gen">
+      <div class="g2">
+        <div class="card"><div class="card-hd"><span class="card-title">Organization</span></div><div class="card-body"><div class="fg"><label>Organization Name</label><input type="text" value="Acme Corp Pvt. Ltd."></div><div class="fg"><label>Admin Email</label><input type="email" value="admin@acmecorp.in"></div><div class="fg"><label>Asset ID Prefix</label><input type="text" value="AST-"></div><div class="fg"><label>Currency</label><select><option>INR (₹)</option><option>USD ($)</option><option>EUR (€)</option></select></div><button class="btn btn-primary" onclick="toast('success','Saved','Organization settings updated')">Save Changes</button></div></div>
+        <div class="card"><div class="card-hd"><span class="card-title">Preferences</span></div><div class="card-body">
+          <div class="toggle-row"><div class="tr-info"><h4>Dark Mode</h4><p>Use dark theme across the application</p></div><button class="tog on" id="dmTog" onclick="this.classList.toggle('on');setTheme(this.classList.contains('on')?'dark':'light')"></button></div>
+          <div class="toggle-row"><div class="tr-info"><h4>Compact Tables</h4><p>Reduce table row padding</p></div><button class="tog" onclick="this.classList.toggle('on')"></button></div>
+          <div class="toggle-row"><div class="tr-info"><h4>Asset IDs in Search</h4><p>Include IDs in search results</p></div><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="toggle-row"><div class="tr-info"><h4>Auto-refresh Dashboard</h4><p>Refresh stats every 5 minutes</p></div><button class="tog" onclick="this.classList.toggle('on')"></button></div>
+        </div></div>
+      </div>
+    </div>
+    <div id="st-notif" style="display:none">
+      <div class="card"><div class="card-hd"><span class="card-title">Email Notifications</span></div><div class="card-body">
+        <div class="fg2">
+          <div class="fg"><label>Warranty Alert (days before)</label><input type="number" value="30"></div>
+          <div class="fg"><label>Maintenance Reminder (days)</label><input type="number" value="7"></div>
+          <div class="fg"><label>SMTP Server</label><input type="text" value="smtp.acmecorp.in"></div>
+          <div class="fg"><label>SMTP Port</label><input type="number" value="587"></div>
+        </div>
+        <div class="toggle-row"><div class="tr-info"><h4>Warranty Expiry Alerts</h4><p>Email when warranty is about to expire</p></div><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="toggle-row"><div class="tr-info"><h4>Maintenance Reminders</h4><p>Alert when scheduled service is due</p></div><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+        <div class="toggle-row"><div class="tr-info"><h4>Assignment Notifications</h4><p>Notify users when assets are assigned to them</p></div><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+        <div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-primary" onclick="toast('success','Saved','Notification settings saved')">Save</button><button class="btn btn-ghost" onclick="toast('info','Test Email','Test email sent to admin@acmecorp.in')">Send Test Email</button></div>
+      </div></div>
+    </div>
+    <div id="st-roles" style="display:none">
+      <div class="card"><div class="card-hd"><span class="card-title">Role Permissions Matrix</span></div><div class="card-body p0 tbl-wrap"><table><thead><tr><th>Permission</th><th>Super Admin</th><th>Admin</th><th>Manager</th><th>Employee</th></tr></thead><tbody>
+        <tr><td>View All Assets</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Log Maintenance Request</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Return Own Assigned Asset</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Register / Edit Assets</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+        <tr><td>Assign / Issue Assets</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+        <tr><td>Approve Maintenance</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+        <tr><td>Export Reports</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+        <tr><td>View Audit Trail</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+        <tr><td>Delete Assets</td><td>✓</td><td>✓</td><td>—</td><td>—</td></tr>
+        <tr><td>Manage Employees</td><td>✓</td><td>✓</td><td>—</td><td>—</td></tr>
+        <tr><td>System Settings</td><td>✓</td><td>✓</td><td>—</td><td>—</td></tr>
+        <tr><td>Dispose Assets</td><td>✓</td><td>—</td><td>—</td><td>—</td></tr>
+      </tbody></table></div></div>
+    </div>
+    <div id="st-backup" style="display:none">
+      <div class="g2">
+        <div class="card"><div class="card-hd"><span class="card-title">Backup</span></div><div class="card-body">
+          <div class="toggle-row"><div class="tr-info"><h4>Auto Backup</h4><p>Daily automatic database backup</p></div><button class="tog on" onclick="this.classList.toggle('on')"></button></div>
+          <div class="fg" style="margin-top:14px"><label>Backup Frequency</label><select><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div>
+          <div class="fg"><label>Backup Location</label><input type="text" value="/backups/ams/"></div>
+          <div class="alert alert-info" style="margin-bottom:14px;margin-top:4px">ℹ Last backup: Jun 7, 2026 at 2:00 AM — 98 MB</div>
+          <button class="btn btn-primary" onclick="toast('success','Backup Started','Manual backup initiated. This may take a few minutes.')">Backup Now</button>
+        </div></div>
+        <div class="card"><div class="card-hd"><span class="card-title">Restore</span></div><div class="card-body">
+          <div class="alert alert-danger" style="margin-bottom:14px"><i data-lucide="alert-triangle" class="ico" style="width:16px;height:16px;vertical-align:middle"></i> Restoring will overwrite all current data. This cannot be undone.</div>
+          <div class="fg"><label>Select Backup Date</label><input type="date" value="2026-06-07"></div>
+          <button class="btn btn-danger" onclick="toast('warning','Restore','Requires super admin confirmation — contact system administrator')">Restore from Backup</button>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="moverlay" id="m-addAsset"><div class="modal mlg">
+  <button class="mclose" onclick="closeM('addAsset')">✕</button>
+  <div class="mhd"><h3>Register New Asset</h3><p>Add a new asset to the system inventory</p></div>
+  <div class="fg2">
+    <div class="fg"><label>Asset Name *</label><input id="aName" type="text" placeholder="e.g. Dell Inspiron 15"></div>
+    <div class="fg"><label>Category *</label><select id="aCat"><option value="">Select Category</option></select></div>
+    <div class="fg"><label>Serial Number *</label><input id="aSerial" type="text" placeholder="SN-XXXX-XXXXX"></div>
+    <div class="fg"><label>Asset Tag / Barcode</label><input id="aTag" type="text" placeholder="Auto-generated if blank"></div>
+    <div class="fg"><label>Department</label><select id="aDept"><option value="">Select Department</option></select></div>
+    <div class="fg"><label>Vendor</label><select id="aVendor"><option value="">Select Vendor (Optional)</option></select></div>
+    <div class="fg"><label>Purchase Date</label><input id="aPD" type="date"></div>
+    <div class="fg"><label>Warranty Until</label><input id="aWarr" type="date"></div>
+    <div class="fg"><label>Purchase Price (₹)</label><input id="aVal" type="number" placeholder="0.00" min="0"></div>
+    <div class="fg"><label>Useful Life (Years)</label><input id="aLife" type="number" value="3" min="1"></div>
+    <div class="fg fgfull"><label>Notes / Description</label><textarea id="aNotes" placeholder="Additional details…"></textarea></div>
+  </div>
+  <div class="mft">
+    <button class="btn btn-ghost" onclick="closeM('addAsset')">Cancel</button>
+    <button class="btn btn-primary" id="assetSubmitBtn" onclick="submitAsset()">Register Asset</button>
+  </div>
+</div></div>
+
+<div class="moverlay" id="m-issueAsset"><div class="modal">
+  <button class="mclose" onclick="closeM('issueAsset')">✕</button>
+  <div class="mhd"><h3>Issue Asset</h3><p>Assign an asset to an employee</p></div>
+  <div class="fg"><label>Asset *</label><select id="issueAsset"><option value="">Select Available Asset</option></select></div>
+  <div class="fg"><label>Assign To *</label><select id="issueEmployee"><option value="">Select Employee</option></select></div>
+  <div class="fg2">
+    <div class="fg"><label>Issue Date</label><input id="issueDate" type="date"></div>
+    <div class="fg"><label>Expected Return</label><input id="issueExpReturn" type="date"></div>
+  </div>
+  <div class="fg"><label>Condition at Issue</label>
+    <select id="issueCondition">
+      <option value="New">New</option>
+      <option value="Good" selected>Good</option>
+      <option value="Fair">Fair</option>
+      <option value="Poor">Poor</option>
+    </select>
+  </div>
+  <div class="fg"><label>Notes</label><textarea id="issueNotes" placeholder="Any remarks…"></textarea></div>
+  <div class="mft">
+    <button class="btn btn-ghost" onclick="closeM('issueAsset')">Cancel</button>
+    <button class="btn btn-success" id="issueSubmitBtn" onclick="submitIssue()">Issue Asset</button>
+  </div>
+</div></div>
+
+<div class="moverlay" id="m-returnAsset"><div class="modal">
+  <button class="mclose" onclick="closeM('returnAsset')">✕</button>
+  <div class="mhd"><h3>Return Asset</h3><p>Process an asset return</p></div>
+  <input type="hidden" id="returnAllocId">
+  <div class="fg"><label>Asset</label><input id="returnAssetName" type="text" readonly style="opacity:.7"></div>
+  <div class="fg2">
+    <div class="fg"><label>Return Date</label><input id="returnDate" type="date"></div>
+    <div class="fg"><label>Condition on Return</label>
+      <select id="returnCondition">
+        <option value="Good">Good</option>
+        <option value="Fair">Fair</option>
+        <option value="Damaged">Damaged</option>
+        <option value="Lost">Lost</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg"><label>Remarks</label><textarea id="returnNotes" placeholder="Any damage or issues to note…"></textarea></div>
+  <div class="mft">
+    <button class="btn btn-ghost" onclick="closeM('returnAsset')">Cancel</button>
+    <button class="btn btn-primary" id="returnSubmitBtn" onclick="submitReturn()">Confirm Return</button>
+  </div>
+</div></div>
+
+<div class="moverlay" id="m-addMaint"><div class="modal">
+  <button class="mclose" onclick="closeM('addMaint')">✕</button>
+  <div class="mhd"><h3>Log Maintenance</h3><p>Record a maintenance or repair request</p></div>
+  <div class="fg"><label>Asset *</label><select id="mAsset"><option value="">Select Asset</option></select></div>
+  <div class="fg"><label>Issue Title *</label><input id="mTitle" type="text" placeholder="e.g. Battery replacement required"></div>
+  <div class="fg"><label>Description</label><textarea id="mDesc" placeholder="Describe the issue or service required…"></textarea></div>
+  <div class="fg2">
+    <div class="fg"><label>Scheduled Date</label><input id="mDate" type="date"></div>
+    <div class="fg"><label>Estimated Cost (₹)</label><input id="mCost" type="number" placeholder="0.00" min="0"></div>
+  </div>
+  <div class="fg"><label>Service Vendor</label><select id="mVendor"><option value="">Select Vendor (Optional)</option></select></div>
+  <div class="mft">
+    <button class="btn btn-ghost" onclick="closeM('addMaint')">Cancel</button>
+    <button class="btn btn-primary" id="maintSubmitBtn" onclick="submitMaintenance()">Submit Request</button>
+  </div>
+</div></div>
+
+<div class="moverlay" id="m-addEmp"><div class="modal">
+  <button class="mclose" onclick="closeM('addEmp')">✕</button>
+  <div class="mhd"><h3>Add New Employee</h3><p>Register a new user in the system</p></div>
+  <div class="fg2">
+    <div class="fg"><label>Full Name *</label><input id="eName" type="text" placeholder="First Last"></div>
+    <div class="fg"><label>Employee ID</label><input id="eId" type="text" placeholder="Auto-generated" readonly></div>
+    <div class="fg"><label>Department</label><select id="eDept"><option value="">Select Department</option></select></div>
+    <div class="fg"><label>Designation</label><input id="eDesig" type="text" placeholder="e.g. Senior Developer"></div>
+    <div class="fg"><label>Email *</label><input id="eEmail" type="email" placeholder="user@company.in"></div>
+    <div class="fg"><label>Phone</label><input id="ePhone" type="tel" placeholder="+91-XXXXXXXXXX"></div>
+    <div class="fg"><label>Role</label>
+      <select id="eRole">
+        <option value="Employee">Employee</option>
+        <option value="Manager">Manager</option>
+        <option value="Admin">Admin</option>
+        <option value="Super Admin">Super Admin</option>
+      </select>
+    </div>
+    <div class="fg"><label>Status</label>
+      <select id="eStatus"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+    </div>
+    <div class="fg fgfull" id="ePasswordGroup">
+      <label>Temporary Password *</label>
+      <input id="ePassword" type="password" placeholder="Min 8 characters" autocomplete="new-password">
+    </div>
+  </div>
+  <div class="mft">
+    <button class="btn btn-ghost" onclick="closeM('addEmp')">Cancel</button>
+    <button class="btn btn-primary" id="empSubmitBtn" onclick="submitEmployee()">Add Employee</button>
+  </div>
+</div></div>
+
+<div class="moverlay" id="m-addVendor"><div class="modal">
+  <button class="mclose" onclick="closeM('addVendor')">✕</button>
+  <div class="mhd"><h3>Add New Vendor</h3><p>Register a new supplier or service partner</p></div>
+  <div class="fg"><label>Vendor Name *</label><input id="vName" type="text" placeholder="e.g. TechServ India Pvt. Ltd."></div>
+  <div class="fg2">
+    <div class="fg"><label>Contact Phone</label><input id="vPhone" type="tel" placeholder="+91-XXXXXXXXXX"></div>
+    <div class="fg"><label>Email</label><input id="vEmail" type="email" placeholder="vendor@example.com"></div>
+    <div class="fg"><label>Address / City</label><input id="vAddress" type="text" placeholder="e.g. Hyderabad, Telangana"></div>
+    <div class="fg"><label>Website</label><input id="vWebsite" type="url" placeholder="https://"></div>
+  </div>
+  <div class="fg"><label>Primary Contact Name</label><input id="vContact" type="text" placeholder="Contact person's name"></div>
+  <div class="fg"><label>Service Categories (comma-separated)</label>
+    <input id="vCategories" type="text" placeholder="e.g. Laptops, Servers, Networking">
+  </div>
+  <div class="mft">
+    <button class="btn btn-ghost" onclick="closeM('addVendor')">Cancel</button>
+    <button class="btn btn-primary" id="vendorSubmitBtn" onclick="submitVendor()">Add Vendor</button>
+  </div>
+</div></div>
+
+<div class="moverlay" id="m-qr"><div class="modal msm">
+  <button class="mclose" onclick="closeM('qr')">✕</button>
+  <div class="mhd"><h3>QR / Barcode Scanner</h3><p>Scan to look up or register an asset</p></div>
+  <div style="border:2px dashed var(--border2);border-radius:var(--radius);padding:24px;text-align:center;color:var(--text2)">
+    <div style="font-size:52px;margin-bottom:12px">📷</div>
+    <b style="font-size:14px">Point camera at QR or barcode</b>
+    <div style="font-size:12px;margin-top:6px;color:var(--text3)">Camera access required to scan asset codes</div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;margin-bottom:8px">Or enter Asset ID manually:</div>
+      <input type="text" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:9px;color:var(--text);font-family:inherit;font-size:13px;outline:none;text-align:center" placeholder="AST-XXX" onkeydown="if(event.key==='Enter'){closeM('qr');toast('success','Asset Found','Loaded: '+this.value)}">
+    </div>
+  </div>
+  <div class="mft"><button class="btn btn-ghost" onclick="closeM('qr')">Close</button><button class="btn btn-primary" onclick="closeM('qr');toast('info','Camera','Camera access requested…')">Open Camera</button></div>
+</div></div>
+
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/permissions.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/employees.js"></script>
+<script src="js/vendors.js"></script>
+<script src="js/allocation.js"></script>
+<script src="js/maintenance.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="js/reports.js"></script>
+
+<script>
+// ── AMS Pro — Main Application Controller ──────────────────────────────────
+// This script ties together all modules and handles navigation routing.
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function setTheme(m) {
+  const h = document.documentElement;
+  document.querySelectorAll('.th-opt').forEach(o => o.classList.remove('on'));
+  const el = document.getElementById('t' + m[0]);
+  if (el) el.classList.add('on');
+  if (m === 'system') {
+    const d = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    h.setAttribute('data-theme', d ? 'dark' : 'light');
+  } else {
+    h.setAttribute('data-theme', m);
+  }
+  localStorage.setItem('ams-theme', m);
+  const dmt = document.getElementById('dmTog');
+  if (dmt) dmt.classList.toggle('on', h.getAttribute('data-theme') === 'dark');
+}
+(() => { const s = localStorage.getItem('ams-theme') || 'dark'; setTheme(s); })();
+
+// ── Sidebar toggle ────────────────────────────────────────────────────────────
+let sbCol = false;
+function toggleSB() {
+  sbCol = !sbCol;
+  document.getElementById('sidebar').classList.toggle('col', sbCol);
+  document.getElementById('main').classList.toggle('exp', sbCol);
+  document.getElementById('sbBtn').textContent = sbCol ? '›' : '‹';
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function nav(p) {
+  if (!p) return;
+
+  if (window.AMS?.permissions && !window.AMS.permissions.canAccessPage(p)) {
+    toast('error', 'Access Denied', `Your role (${window.AMS.permissions.getRole()}) cannot open this page.`);
+    return;
+  }
+
+  const pg = document.getElementById('page-' + p);
+  if (!pg) {
+    console.warn('[Nav] Page not found:', p);
+    toast('warning', 'Page unavailable', `Could not open "${p}".`);
+    return;
+  }
+
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nitem').forEach(x => x.classList.remove('active'));
+
+  pg.classList.add('active');
+  const ni = document.getElementById('n-' + p);
+  if (ni) ni.classList.add('active');
+
+  const bc = document.getElementById('bc');
+  if (bc) bc.textContent = p.charAt(0).toUpperCase() + p.slice(1);
+
+  document.getElementById('sidebar')?.classList.remove('mob');
+  document.querySelector('.content')?.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Lazy-load page data when navigating to it
+  switch (p) {
+    case 'dashboard':
+      if (typeof loadDashboard === 'function') loadDashboard();
+      break;
+    case 'assets':
+      if (typeof loadAssets === 'function') {
+        loadAssets(window.AMS?.assets?.assetState?.currentFilter || 'all');
+        loadAssetFormDropdowns?.();
+      }
+      break;
+    case 'employees':
+      if (typeof loadEmployees === 'function') {
+        loadEmployees();
+        loadEmployeeFormDropdowns?.();
+      }
+      break;
+    case 'vendors':
+      if (typeof loadVendors === 'function') loadVendors();
+      break;
+    case 'allocation':
+      if (typeof loadAllocation === 'function') loadAllocation();
+      break;
+    case 'maintenance':
+      if (typeof loadMaintenance === 'function') loadMaintenance();
+      break;
+    case 'reports':
+      if (typeof initIcons === 'function') initIcons();
+      break;
+    case 'notifications':
+      if (typeof loadNotifications === 'function') loadNotifications();
+      break;
+    case 'audit':
+      if (typeof loadAuditLogs === 'function') loadAuditLogs(1);
+      break;
+    case 'depreciation':
+      if (typeof loadDepreciation === 'function') loadDepreciation();
+      break;
+    case 'settings':
+      if (typeof initIcons === 'function') initIcons();
+      break;
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+// Navigate to assets with a pre-set filter (from dashboard stat cards)
+function fNav(status) {
+  if (window.AMS?.assets?.assetState) {
+    window.AMS.assets.assetState.currentFilter = status;
+  }
+  nav('assets');
+  setTimeout(() => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    const chip = document.getElementById('chip-' + status);
+    if (chip) chip.classList.add('on');
+  }, 50);
+}
+
+// ── Modal Helpers ─────────────────────────────────────────────────────────────
+function openM(id) {
+  const perm = window.AMS?.permissions?.MODAL_PERMISSIONS?.[id];
+  if (perm && window.AMS?.permissions && !window.AMS.permissions.can(perm)) {
+    window.AMS.permissions.requirePermission(perm, 'Open this dialog');
+    return;
+  }
+
+  const el = document.getElementById('m-' + id);
+  if (!el) return;
+  el.classList.add('open');
+
+  // Load dropdowns when modal opens
+  if (id === 'addAsset')    loadAssetFormDropdowns?.();
+  if (id === 'issueAsset')  loadIssueFormDropdowns?.();
+  if (id === 'addMaint')    loadMaintenanceFormDropdowns?.();
+  if (id === 'addEmp')      loadEmployeeFormDropdowns?.();
+}
+function closeM(id) {
+  document.getElementById('m-' + id)?.classList.remove('open');
+}
+document.querySelectorAll('.moverlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function toast(type, title, msg) {
+  const wrap  = document.getElementById('toastWrap');
+  const icons = { success: 'check-circle', error: 'x-circle', warning: 'alert-triangle', info: 'info' };
+  const t     = document.createElement('div');
+  t.className = `toast ${type}`;
+  const iconName = icons[type] || 'info';
+  t.innerHTML = `<div class="t-icon"><i data-lucide="${iconName}" class="ico"></i></div>
+    <div class="t-body"><div class="t-title">${title}</div><div class="t-msg">${msg || ''}</div></div>`;
+  wrap.appendChild(t);
+  if (window.lucide) lucide.createIcons({ nodes: [t] });
+  setTimeout(() => {
+    t.style.opacity   = '0';
+    t.style.transform = 'translateX(20px)';
+    t.style.transition= 'all .3s';
+    setTimeout(() => t.remove(), 300);
+  }, 3500);
+}
+
+// ── Tab Switcher ──────────────────────────────────────────────────────────────
+function switchTab(btn, tid) {
+  const tabs = btn.closest('.tabs');
+  tabs.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  btn.classList.add('on');
+  const parent = tabs.parentElement;
+  parent.querySelectorAll(':scope>[id]').forEach(s => s.style.display = 'none');
+  const tgt = document.getElementById(tid);
+  if (tgt) tgt.style.display = 'block';
+}
+
+// ── Global Search ─────────────────────────────────────────────────────────────
+const NAV_ITEMS = [
+  { icon: 'layout-dashboard', name: 'Dashboard',    sub: 'Overview & stats',     page: 'dashboard'    },
+  { icon: 'package',          name: 'Assets',       sub: 'Full inventory',       page: 'assets'       },
+  { icon: 'users',            name: 'Employees',    sub: 'User management',      page: 'employees'    },
+  { icon: 'arrow-left-right', name: 'Allocation',   sub: 'Issue & return',       page: 'allocation'   },
+  { icon: 'wrench',           name: 'Maintenance',  sub: 'Repair tracking',      page: 'maintenance'  },
+  { icon: 'building-2',       name: 'Vendors',      sub: 'Suppliers',            page: 'vendors'      },
+  { icon: 'bar-chart-3',      name: 'Reports',      sub: 'Analytics',            page: 'reports'      },
+  { icon: 'trending-down',    name: 'Depreciation', sub: 'Asset values',         page: 'depreciation' },
+  { icon: 'settings',         name: 'Settings',     sub: 'Configuration',        page: 'settings'     },
+];
+
+async function doSearch(v) {
+  const res = document.getElementById('sRes');
+  if (!v.trim()) { res.classList.remove('show'); return; }
+  const q = v.toLowerCase();
+
+  // Nav items match
+  const navMatches = NAV_ITEMS.filter(d =>
+    d.name.toLowerCase().includes(q) || d.sub.toLowerCase().includes(q)
+  );
+
+  // Asset search from DB (debounced)
+  let assetMatches = [];
+  if (window.AMS?.db) {
+    const { data } = await window.AMS.db
+      .from('assets')
+      .select('asset_code, name, status')
+      .or(`name.ilike.%${v}%,asset_code.ilike.%${v}%`)
+      .limit(5);
+    assetMatches = (data || []).map(a => ({
+      icon: 'package',
+      name: a.name,
+      sub:  `${a.asset_code} · ${window.AMS.config.assetStatus[a.status] || a.status}`,
+      page: 'assets',
+    }));
+  }
+
+  const all = [...assetMatches, ...navMatches].slice(0, 7);
+  if (!all.length) { res.classList.remove('show'); return; }
+
+  res.innerHTML = all.map(x =>
+    `<div class="sri" onclick="srClick('${x.page}')">
+      <span class="sri-icon"><i data-lucide="${x.icon}" class="ico"></i></span>
+      <div><div class="sri-name">${x.name}</div><div class="sri-sub">${x.sub}</div></div>
+    </div>`
+  ).join('');
+  res.classList.add('show');
+  if (window.lucide) lucide.createIcons({ nodes: [res] });
+}
+
+function srClick(p) {
+  document.getElementById('sRes').classList.remove('show');
+  document.getElementById('gSearch').value = '';
+  nav(p);
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.tb-search'))
+    document.getElementById('sRes').classList.remove('show');
+});
+
+// ── Command Palette ───────────────────────────────────────────────────────────
+const CMDS = [
+  { icon: 'layout-dashboard', label: 'Go to Dashboard',          hint: 'Navigation', fn: () => nav('dashboard')    },
+  { icon: 'package',          label: 'Go to Assets',              hint: 'Navigation', fn: () => nav('assets')       },
+  { icon: 'users',            label: 'Go to Employees',           hint: 'Navigation', fn: () => nav('employees')    },
+  { icon: 'arrow-left-right', label: 'Go to Allocation',          hint: 'Navigation', fn: () => nav('allocation')   },
+  { icon: 'wrench',           label: 'Go to Maintenance',         hint: 'Navigation', fn: () => nav('maintenance')  },
+  { icon: 'building-2',       label: 'Go to Vendors',             hint: 'Navigation', fn: () => nav('vendors')      },
+  { icon: 'bar-chart-3',      label: 'Go to Reports',             hint: 'Navigation', fn: () => nav('reports')      },
+  { icon: 'trending-down',    label: 'Go to Depreciation',        hint: 'Navigation', fn: () => nav('depreciation') },
+  { icon: 'settings',         label: 'Go to Settings',            hint: 'Navigation', fn: () => nav('settings')     },
+  { icon: 'package-plus',     label: 'Register New Asset',        hint: 'Action',     fn: () => openM('addAsset')   },
+  { icon: 'arrow-up',         label: 'Issue Asset to Employee',   hint: 'Action',     fn: () => openM('issueAsset') },
+  { icon: 'arrow-down',       label: 'Process Asset Return',      hint: 'Action',     fn: () => openM('returnAsset')},
+  { icon: 'wrench',           label: 'Log Maintenance Request',  hint: 'Action',     fn: () => openM('addMaint')   },
+  { icon: 'user-plus',        label: 'Add New Employee',          hint: 'Action',     fn: () => openM('addEmp')     },
+  { icon: 'building-2',       label: 'Add New Vendor',            hint: 'Action',     fn: () => openM('addVendor')  },
+  { icon: 'scan',             label: 'Open QR Scanner',          hint: 'Tool',       fn: () => openM('qr')         },
+  { icon: 'moon',             label: 'Dark Mode',                hint: 'Theme',      fn: () => setTheme('dark')    },
+  { icon: 'sun',              label: 'Light Mode',               hint: 'Theme',      fn: () => setTheme('light')   },
+  { icon: 'download',         label: 'Export Asset CSV',          hint: 'Export',     fn: () => exportCSV?.()       },
+];
+let cmdIdx = 0;
+
+function openCmd() {
+  document.getElementById('cmdPal').classList.add('open');
+  document.getElementById('cmdIn').value = '';
+  renderCmd(CMDS);
+  setTimeout(() => document.getElementById('cmdIn').focus(), 50);
+}
+function closeCmd() { document.getElementById('cmdPal').classList.remove('open'); }
+function renderCmd(items) {
+  cmdIdx = 0;
+  const box = document.getElementById('cmdRes');
+  box.innerHTML = items.map((c, i) =>
+    `<div class="cmd-item ${i === 0 ? 'sel' : ''}" onclick="runCmd(${CMDS.indexOf(c)})">
+      <div class="cmd-ii"><i data-lucide="${c.icon}" class="ico"></i></div>
+      <span class="cmd-lbl">${c.label}</span>
+      <span class="cmd-hint">${c.hint}</span>
+    </div>`
+  ).join('');
+  if (window.lucide) lucide.createIcons({ nodes: [box] });
+}
+// Prevent default hash/link navigation — SPA uses nav() only
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => { e.preventDefault(); });
+});
+
+document.getElementById('cmdIn')?.addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  renderCmd(q ? CMDS.filter(c => c.label.toLowerCase().includes(q) || c.hint.toLowerCase().includes(q)) : CMDS);
+});
+document.getElementById('cmdIn')?.addEventListener('keydown', e => {
+  const items = document.querySelectorAll('.cmd-item');
+  if (e.key === 'ArrowDown')  cmdIdx = Math.min(cmdIdx + 1, items.length - 1);
+  else if (e.key === 'ArrowUp')   cmdIdx = Math.max(cmdIdx - 1, 0);
+  else if (e.key === 'Enter') { items[cmdIdx]?.click(); return; }
+  else if (e.key === 'Escape') { closeCmd(); return; }
+  items.forEach((it, i) => it.classList.toggle('sel', i === cmdIdx));
+  items[cmdIdx]?.scrollIntoView({ block: 'nearest' });
+});
+function runCmd(i) { closeCmd(); CMDS[i]?.fn(); }
+document.getElementById('cmdPal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('cmdPal')) closeCmd();
+});
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openCmd(); }
+  if (e.key === 'Escape') closeCmd();
+});
+
+// ── Bulk Actions (Asset Table) ────────────────────────────────────────────────
+function updateBB() {
+  // Alias for updateBulkBar defined in assets.js
+  if (typeof updateBulkBar === 'function') updateBulkBar();
+}
+
+// ── LOGIN SCREEN LOGIC (Supabase-powered) ─────────────────────────────────────
+let selectedUserEmail = null;
+
+// Build user picker cards from static list (you can later load from DB)
+const UI_USERS = [
+  { email: 'admin@acme.in', name: 'Admin User',    role: 'Super Admin', initials: 'AD', color: 'linear-gradient(135deg,#3b82f6,#6366f1)' },
+  { email: 'manager@acme.in',name: 'Manager User', role: 'Manager',     initials: 'MG', color: 'linear-gradient(135deg,#8b5cf6,#ec4899)' },
+];
+
+(function buildUserCards() {
+  const wrap = document.getElementById('userCards');
+  if (!wrap) return;
+  wrap.innerHTML = UI_USERS.map(u =>
+    `<div class="lk-ucard" onclick="selectUser('${u.email}')">
+      <div class="lk-uav" style="background:${u.color}">${u.initials}</div>
+      <div class="lk-uname">${u.name}</div>
+      <div class="lk-urole">${u.role}</div>
+    </div>`
+  ).join('') + `
+    <div class="lk-ucard signup-card" onclick="showSignup()">
+      <div class="lk-uav" style="background:linear-gradient(135deg,#10b981,#06b6d4)">+</div>
+      <div class="lk-uname">New User</div>
+      <div class="lk-urole">Create Account</div>
+    </div>`;
+})();
+
+function selectUser(email) {
+  const u = UI_USERS.find(x => x.email === email);
+  if (!u) return;
+  selectedUserEmail = email;
+
+  // Pre-fill the email field
+  const emailInput = document.getElementById('loginEmail');
+  if (emailInput) emailInput.value = email;
+
+  // Fill avatar badge
+  const av = document.getElementById('selAv');
+  if (av) { av.textContent = u.initials; av.style.background = u.color; }
+  const selName = document.getElementById('selName');
+  const selRole = document.getElementById('selRole');
+  if (selName) selName.textContent = u.name;
+  if (selRole) selRole.textContent = u.role;
+
+  resetHandle();
+
+  document.getElementById('stepPicker').style.display = 'none';
+  document.getElementById('stepSignup').style.display = 'none';
+  const step = document.getElementById('stepSlide');
+  step.style.display = 'block';
+  step.style.animation = 'none';
+  step.offsetHeight; // reflow
+  step.style.animation = '';
+
+  // Focus password field
+  setTimeout(() => document.getElementById('loginPassword')?.focus(), 100);
+}
+
+function showPicker() {
+  document.getElementById('stepSlide').style.display = 'none';
+  document.getElementById('stepSignup').style.display = 'none';
+  const p = document.getElementById('stepPicker');
+  p.style.display = 'block';
+  p.style.animation = 'none'; p.offsetHeight; p.style.animation = '';
+  selectedUserEmail = null;
+}
+
+function showLogin(email) {
+  document.getElementById('stepPicker').style.display = 'none';
+  document.getElementById('stepSignup').style.display = 'none';
+  const step = document.getElementById('stepSlide');
+  step.style.display = 'block';
+  step.style.animation = 'none';
+  step.offsetHeight;
+  step.style.animation = '';
+
+  const signupEmail = document.getElementById('signupEmail')?.value?.trim();
+  const emailToUse  = email || signupEmail || '';
+
+  if (selectedUserEmail) {
+    const u = UI_USERS.find(x => x.email === selectedUserEmail);
+    if (u) {
+      const av = document.getElementById('selAv');
+      if (av) { av.textContent = u.initials; av.style.background = u.color; }
+      const selName = document.getElementById('selName');
+      const selRole = document.getElementById('selRole');
+      if (selName) selName.textContent = u.name;
+      if (selRole) selRole.textContent = u.role;
+    }
+  } else {
+    const av = document.getElementById('selAv');
+    if (av) { av.textContent = 'IN'; av.style.background = 'linear-gradient(135deg,#3b82f6,#6366f1)'; }
+    const selName = document.getElementById('selName');
+    const selRole = document.getElementById('selRole');
+    if (selName) selName.textContent = 'Sign In';
+    if (selRole) selRole.textContent = 'Enter your credentials';
+  }
+
+  const emailInput = document.getElementById('loginEmail');
+  if (emailInput) {
+    if (emailToUse) emailInput.value = emailToUse;
+    else if (selectedUserEmail) emailInput.value = selectedUserEmail;
+  }
+
+  resetHandle();
+  if (typeof initIcons === 'function') initIcons();
+  setTimeout(() => {
+    if (emailToUse) document.getElementById('loginPassword')?.focus();
+    else document.getElementById('loginEmail')?.focus();
+  }, 100);
+}
+
+function showSignup() {
+  document.getElementById('stepPicker').style.display = 'none';
+  document.getElementById('stepSlide').style.display = 'none';
+  const step = document.getElementById('stepSignup');
+  step.style.display = 'block';
+  step.style.animation = 'none';
+  step.offsetHeight;
+  step.style.animation = '';
+  loadSignupDepartments();
+  if (typeof initIcons === 'function') initIcons();
+  setTimeout(() => document.getElementById('signupName')?.focus(), 100);
+}
+
+// Expose for inline onclick handlers
+window.showLogin  = showLogin;
+window.showSignup = showSignup;
+window.showPicker = showPicker;
+
+async function loadSignupDepartments() {
+  const sel = document.getElementById('signupDept');
+  if (!sel) return;
+
+  const staticDepts = [
+    'Engineering', 'HR', 'IT', 'Finance', 'Design',
+    'Operations', 'Marketing', 'Conference', 'Management',
+  ];
+
+  try {
+    const { data } = await window.AMS.db.from('departments').select('id,name').order('name');
+    if (data?.length) {
+      sel.innerHTML = '<option value="">Select Department (optional)</option>' +
+        data.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+      return;
+    }
+  } catch (e) { /* fall through to static list */ }
+
+  // Fallback when not authenticated (signup screen)
+  sel.innerHTML = '<option value="">Select Department (optional)</option>' +
+    staticDepts.map(n => `<option value="${n}">${n}</option>`).join('');
+}
+
+async function handleSignupClick() {
+  const fullName = document.getElementById('signupName')?.value?.trim();
+  const email    = document.getElementById('signupEmail')?.value?.trim();
+  const password = document.getElementById('signupPassword')?.value;
+  const confirm  = document.getElementById('signupConfirm')?.value;
+  const dept     = document.getElementById('signupDept')?.value || null;
+
+  if (!fullName) { toast('error', 'Missing Name', 'Please enter your full name.'); return; }
+  if (!email || !email.includes('@')) { toast('error', 'Invalid Email', 'Please enter a valid email address.'); return; }
+  if (!password || password.length < 8) { toast('error', 'Weak Password', 'Password must be at least 8 characters.'); return; }
+  if (password !== confirm) { toast('error', 'Password Mismatch', 'Passwords do not match.'); return; }
+
+  const btn = document.getElementById('signupLockIcon');
+  if (btn) setLockIcon('loader', 'signupLockIcon');
+
+  const success = await window.AMS.auth.doSignup({ fullName, email, password, departmentId: dept });
+  if (!success && btn) setLockIcon('user-plus', 'signupLockIcon');
+}
+
+// Slide-to-unlock drag logic (triggers Supabase login)
+const TRACK_HEIGHT = 240, HANDLE_H = 52, PADDING = 10;
+const MAX_DRAG = TRACK_HEIGHT - HANDLE_H - PADDING * 2;
+let isDragging = false, startY = 0, currentOffset = 0;
+
+function resetHandle() {
+  const h = document.getElementById('slideHandle');
+  h.style.transition = 'bottom .35s cubic-bezier(.4,0,.2,1)';
+  h.style.bottom = PADDING + 'px';
+  h.classList.remove('unlocking');
+  setLockIcon('lock');
+  currentOffset = 0;
+  setTimeout(() => h.style.transition = '', 360);
+}
+
+function onDragStart(e) {
+  isDragging = true;
+  startY = (e.touches ? e.touches[0].clientY : e.clientY);
+  document.getElementById('slideHandle').style.transition = 'none';
+  e.preventDefault();
+}
+
+function onDragMove(e) {
+  if (!isDragging) return;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const dy      = startY - clientY;
+  const newBottom = Math.min(Math.max(PADDING, PADDING + dy), PADDING + MAX_DRAG);
+  const h    = document.getElementById('slideHandle');
+  const icon = document.getElementById('lockIcon');
+  h.style.bottom = newBottom + 'px';
+  currentOffset  = newBottom - PADDING;
+  const pct = currentOffset / MAX_DRAG;
+  if (pct > 0.55) { h.classList.add('unlocking'); setLockIcon('lock-open'); }
+  else            { h.classList.remove('unlocking'); setLockIcon('lock'); }
+  e.preventDefault();
+}
+
+async function onDragEnd(e) {
+  if (!isDragging) return;
+  isDragging = false;
+  const pct = currentOffset / MAX_DRAG;
+  if (pct >= 0.8) {
+    const h = document.getElementById('slideHandle');
+    h.style.transition = 'bottom .2s ease';
+    h.style.bottom = (PADDING + MAX_DRAG) + 'px';
+    const icon = document.getElementById('lockIcon');
+    setLockIcon('loader');
+    await handleLoginClick();
+  } else {
+    resetHandle();
+  }
+}
+
+// The actual login action — called by slide gesture OR Enter key
+async function handleLoginClick() {
+  const email    = document.getElementById('loginEmail')?.value?.trim();
+  const password = document.getElementById('loginPassword')?.value;
+
+  if (!email) {
+    toast('error', 'Missing Email', 'Please enter your email address.');
+    resetHandle();
+    return;
+  }
+  if (!password) {
+    toast('error', 'Missing Password', 'Please enter your password.');
+    resetHandle();
+    return;
+  }
+
+  // Call Supabase auth login
+  const success = await window.AMS.auth.doLogin(email, password);
+  if (!success) {
+    resetHandle();
+  }
+}
+
+// Forgot password handler
+function handleForgotPassword() {
+  const email = document.getElementById('loginEmail')?.value?.trim();
+  if (!email) {
+    toast('warning', 'Enter Email', 'Please enter your email address first.');
+    return;
+  }
+  window.AMS.auth.sendPasswordReset(email);
+}
+
+// Attach drag events
+(function attachSlide() {
+  const h = document.getElementById('slideHandle');
+  if (!h) return;
+  h.addEventListener('mousedown', onDragStart);
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+  h.addEventListener('touchstart', onDragStart, { passive: false });
+  document.addEventListener('touchmove', onDragMove, { passive: false });
+  document.addEventListener('touchend', onDragEnd);
+})();
+
+// ── App Initialization ─────────────────────────────────────────────────────────
+function initIcons() {
+  if (window.lucide) lucide.createIcons();
+}
+function setLockIcon(name, elId = 'lockIcon') {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = '<i data-lucide="' + name + '" class="ico"></i>';
+  if (window.lucide) lucide.createIcons({ nodes: [el] });
+}
+
+(async function initApp() {
+  // Initialize AMS namespace
+  window.AMS = window.AMS || {};
+
+  // Test connection
+  if (typeof testSupabaseConnection === 'function') {
+    await testSupabaseConnection();
+  }
+
+  // Try to restore an existing session (so user stays logged in after refresh)
+  await window.AMS.auth.restoreSession();
+  initIcons();
+})();
+
+</script>
+</body>
+</html>

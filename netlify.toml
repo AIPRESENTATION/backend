@@ -1,0 +1,22 @@
+# AMS Pro — Frontend (Netlify)
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  command = "node scripts/build-frontend.js"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA: all routes serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

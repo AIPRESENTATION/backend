@@ -1,0 +1,12 @@
+{
+  "name": "ams-pro",
+  "version": "2.0.0",
+  "private": true,
+  "description": "AMS Pro — Asset Management System",
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "build": "node scripts/build-frontend.js",
+    "server": "cd server && npm start",
+    "server:install": "cd server && npm install"
+  }
+}

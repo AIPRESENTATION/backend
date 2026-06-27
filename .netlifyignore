@@ -1,0 +1,9 @@
+node_modules
+database
+*.pdf
+test-backend.js
+fix-encoding.js
+polish-ui.js
+cleanup-ui.js
+server/node_modules
+.vercelignore

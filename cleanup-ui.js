@@ -1,0 +1,14 @@
+const fs = require('fs');
+let h = fs.readFileSync('c:/backend/index.html', 'utf8');
+h = h.replace(/vcard-info">\? /g, 'vcard-info">');
+h = h.replace(/<div class="vcard-logo">\?<\/div>/g, '<div class="vcard-logo">CS</div>');
+h = h.replace(/<div class="vcard-logo">🖨\?<\/div>/g, '<div class="vcard-logo">HP</div>');
+h = h.replace(/<div class="vcard-logo">💻<\/div>/g, '<div class="vcard-logo">DL</div>');
+h = h.replace(/<div class="vcard-logo">🔧<\/div>/g, '<div class="vcard-logo">SP</div>');
+h = h.replace(/vcard-info">📞 /g, 'vcard-info">Tel: ');
+h = h.replace(/vcard-info">✉ /g, 'vcard-info">');
+h = h.replace(/<div class="sc-icon bg-green">✅<\/div>/g, '<div class="sc-icon bg-green"><i data-lucide="check-circle" class="ico"></i></div>');
+h = h.replace(/<div class="rcard-icon">✅<\/div>/g, '<div class="rcard-icon"><i data-lucide="check-circle" class="ico"></i></div>');
+h = h.replace(/<div class="lc-circ">◎<\/div>/g, '<div class="lc-circ">3</div>');
+fs.writeFileSync('c:/backend/index.html', h);
+console.log('Cleanup done');
