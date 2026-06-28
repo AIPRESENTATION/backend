@@ -51,7 +51,7 @@ git push -u origin main
 |----------|--------|
 | `SUPABASE_URL` | `https://nwdrnhjlvashisxgputy.supabase.co` |
 | `SUPABASE_ANON_KEY` | your Supabase anon/publishable key |
-| `FRONTEND_URL` | your Netlify URL (set after step 3), e.g. `https://ams-pro.netlify.app` |
+| `FRONTEND_URL` | `https://aws-management.netlify.app` |
 
 5. Deploy → note your API URL, e.g. `https://ams-pro-api.onrender.com`
 6. Test: open `https://YOUR-API.onrender.com/health`
@@ -72,9 +72,12 @@ git push -u origin main
 |----------|--------|
 | `SUPABASE_URL` | `https://nwdrnhjlvashisxgputy.supabase.co` |
 | `SUPABASE_ANON_KEY` | same anon key as Render |
-| `API_URL` | your Render URL, e.g. `https://ams-pro-api.onrender.com` |
+| `API_URL` | `https://ams-pro-api.onrender.com` |
 
-4. Deploy → note your site URL, e.g. `https://ams-pro.netlify.app`
+> **Common mistake:** Set the **value** to your actual Supabase publishable key — not the text `SUPABASE_ANON_KEY`.  
+> Find it in Supabase → Project Settings → API → `anon` / publishable key.
+
+4. Deploy → your site: `https://aws-management.netlify.app`
 
 ---
 
@@ -84,8 +87,8 @@ In **Supabase Dashboard** → **Authentication** → **URL Configuration**:
 
 | Setting | Value |
 |---------|--------|
-| **Site URL** | `https://YOUR-SITE.netlify.app` |
-| **Redirect URLs** | `https://YOUR-SITE.netlify.app/**` |
+| **Site URL** | `https://aws-management.netlify.app` |
+| **Redirect URLs** | `https://aws-management.netlify.app/**` |
 | | `http://localhost:3000/**` (local dev) |
 
 ---
@@ -144,7 +147,11 @@ SUPABASE_URL=... SUPABASE_ANON_KEY=... npm start
 
 ## Troubleshooting
 
-**Login fails after deploy** — Add Netlify URL to Supabase redirect URLs.
+**Login fails / "Invalid API key"** — Netlify `SUPABASE_ANON_KEY` was set to the literal text `SUPABASE_ANON_KEY`. Fix in Netlify → Site settings → Environment variables → paste the real key from Supabase Dashboard → API, then redeploy.
+
+**Backend shows offline** — Render API is optional for data; Supabase is the database. Check `https://ams-pro-api.onrender.com/api/health`. Free Render sleeps ~30s on first request.
+
+**Login fails after deploy** — Add `https://aws-management.netlify.app/**` to Supabase redirect URLs.
 
 **CORS errors** — Set `FRONTEND_URL` on Render to exact Netlify URL (no trailing slash).
 
