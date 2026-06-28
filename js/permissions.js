@@ -1,148 +1,128 @@
 /**
- * permissions.js — AMS Pro Role-Based Access Control
+ * permissions.js
+ * AMS Pro — Role-Based Permission System
  *
- * Roles: Super Admin > Admin > Manager > Employee
- * DB RLS enforces server-side rules; this module mirrors them in the UI.
+ * ROLES:
+ *   Super Admin  → full access
+ *   Admin        → full access (same as Super Admin)
+ *   Manager      → approve assets, approve maintenance, assign, view all
+ *   Employee     → submit assets for approval, view own, request maintenance
+ *
+ * ASSET WORKFLOW:
+ *   Employee adds asset → status = 'pending_approval'
+ *   Manager/Admin sees it in "Pending Approvals" → Approve → status = 'available'
+ *                                                → Reject  → status = 'rejected'
  */
 
-const ROLE_LEVEL = {
-  'Super Admin': 4,
-  'Admin':       3,
-  'Manager':     2,
-  'Employee':    1,
+const ROLE_PERMISSIONS = {
+  'Super Admin': [
+    'view_assets', 'register_assets', 'edit_assets', 'delete_assets',
+    'approve_assets', 'reject_assets',
+    'assign_assets', 'request_return',
+    'view_employees', 'manage_employees',
+    'view_vendors', 'manage_vendors',
+    'view_allocation', 'manage_allocation',
+    'request_maintenance', 'approve_maintenance', 'complete_maintenance',
+    'view_reports', 'export_reports',
+    'view_audit', 'view_settings', 'manage_settings',
+    'view_notifications',
+  ],
+  'Admin': [
+    'view_assets', 'register_assets', 'edit_assets', 'delete_assets',
+    'approve_assets', 'reject_assets',
+    'assign_assets', 'request_return',
+    'view_employees', 'manage_employees',
+    'view_vendors', 'manage_vendors',
+    'view_allocation', 'manage_allocation',
+    'request_maintenance', 'approve_maintenance', 'complete_maintenance',
+    'view_reports', 'export_reports',
+    'view_audit', 'view_settings', 'manage_settings',
+    'view_notifications',
+  ],
+  'Manager': [
+    'view_assets', 'register_assets', 'edit_assets',
+    'approve_assets', 'reject_assets',
+    'assign_assets', 'request_return',
+    'view_employees',
+    'view_vendors',
+    'view_allocation', 'manage_allocation',
+    'request_maintenance', 'approve_maintenance', 'complete_maintenance',
+    'view_reports', 'export_reports',
+    'view_audit',
+    'view_notifications',
+  ],
+  'Employee': [
+    'view_assets', 'register_assets',   // submits for approval
+    'request_return',
+    'view_employees',
+    'view_vendors',
+    'view_allocation',
+    'request_maintenance',
+    'view_notifications',
+  ],
 };
 
-/** Minimum role level required per permission */
-const PERMISSIONS = {
-  // Everyone
-  view_dashboard:    1,
-  view_assets:       1,
-  view_allocations:  1,
-  view_maintenance:  1,
-  view_vendors:      1,
-  view_employees:    1,
-  view_reports:      1,
-  view_notifications: 1,
-  log_maintenance:   1,
-  request_return:    1,
-
-  // Manager and above
-  assign_assets:       2,
-  register_assets:   2,
-  edit_assets:         2,
-  approve_maintenance: 2,
-  complete_maintenance: 2,
-  manage_vendors:      2,
-  view_audit:          2,
-  view_depreciation:   2,
-  export_reports:      2,
-
-  // Admin and above
-  delete_assets:     3,
-  manage_employees:  3,
-  manage_settings:   3,
-
-  // Super Admin only
-  dispose_assets:    4,
-};
-
-const PAGE_PERMISSIONS = {
-  dashboard:     'view_dashboard',
-  assets:        'view_assets',
-  employees:     'view_employees',
-  allocation:    'view_allocations',
-  maintenance:   'view_maintenance',
-  vendors:       'view_vendors',
-  reports:       'view_reports',
-  notifications: 'view_notifications',
-  audit:         'view_audit',
-  depreciation:  'view_depreciation',
-  settings:      'manage_settings',
-};
-
-const MODAL_PERMISSIONS = {
-  addAsset:    'register_assets',
-  issueAsset:  'assign_assets',
-  returnAsset: 'request_return',
-  addMaint:    'log_maintenance',
-  addVendor:   'manage_vendors',
-  addEmp:      'manage_employees',
-};
-
-function getRole() {
-  return window.AMS?.auth?.getCurrentUser()?.role || 'Employee';
-}
-
-function roleLevel(role) {
-  return ROLE_LEVEL[role] || 1;
-}
-
+// ── Permission check helpers ──────────────────────────────────────────────────
 function can(permission) {
-  const min = PERMISSIONS[permission];
-  if (min == null) return false;
-  return roleLevel(getRole()) >= min;
+  const user = window.AMS.auth.getCurrentUser();
+  if (!user) return false;
+  const role = user.role || 'Employee';
+  return (ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS['Employee']).includes(permission);
 }
 
-function requirePermission(permission, actionLabel) {
-  if (can(permission)) return true;
-  toast('error', 'Not Authorized', `${actionLabel || 'This action'} requires ${permissionLabel(permission)} access.`);
-  return false;
-}
-
-function permissionLabel(permission) {
-  const min = PERMISSIONS[permission];
-  if (!min) return 'higher';
-  const role = Object.entries(ROLE_LEVEL).find(([, v]) => v === min)?.[0];
-  return role || 'Manager';
-}
-
-function canAccessPage(page) {
-  const perm = PAGE_PERMISSIONS[page];
-  return !perm || can(perm);
-}
-
-/** Hide nav items and action buttons the current role
- cannot use */
-function applyUIPermissions() {
-  const role = getRole();
-
-  // Sidebar nav
-  Object.entries({
-    'n-settings':     'manage_settings',
-    'n-audit':        'view_audit',
-    'n-depreciation': 'view_depreciation',
-  }).forEach(([id, perm]) => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = can(perm) ? '' : 'none';
-  });
-
-  // Top bar + page header buttons
-  document.querySelectorAll('[data-perm]').forEach(el => {
-    el.style.display = can(el.dataset.perm) ? '' : 'none';
-  });
-
-  // Employee: hide bulk actions on assets
-  const bulkBar = document.getElementById('bulkBar');
-  if (bulkBar && !can('assign_assets')) {
-    bulkBar.querySelectorAll('.bb-actions button:not([onclick*="clearSel"])').forEach(b => {
-      b.style.display = 'none';
-    });
+function requirePermission(permission, actionName = 'perform this action') {
+  if (!can(permission)) {
+    toast('error', 'Access Denied',
+      `You don't have permission to ${actionName}. Contact your manager.`);
+    return false;
   }
-
-  // Show role hint in sidebar
-  const sfRole = document.querySelector('.sf-role');
-  if (sfRole) {
-    sfRole.title = role === 'Employee'
-      ? 'You can view assets and submit maintenance requests. Manager approval required for assignments.'
-      : '';
-  }
+  return true;
 }
 
+// ── Apply role restrictions to UI ─────────────────────────────────────────────
 function applyRoleRestrictions(role) {
-  applyUIPermissions();
+  const perms = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS['Employee'];
+
+  // Settings nav — only Admin+
+  if (!perms.includes('view_settings')) {
+    document.getElementById('n-settings')?.style.setProperty('display', 'none');
+  }
+  // Audit nav — Manager+
+  if (!perms.includes('view_audit')) {
+    document.getElementById('n-audit')?.style.setProperty('display', 'none');
+  }
+
+  // "Add Asset" topbar button — shown to all (Employee submits for approval)
+  // but hide if they truly can't register
+  if (!perms.includes('register_assets')) {
+    document.querySelector('.topbar .btn-primary')?.style.setProperty('display', 'none');
+  }
+
+  // Show Pending Approvals nav item only to Manager+
+  const pendingNav = document.getElementById('n-pending');
+  if (pendingNav) {
+    pendingNav.style.display = perms.includes('approve_assets') ? 'flex' : 'none';
+  }
+
+  // Store resolved role on window for quick access
+  window.AMS._userRole = role;
 }
 
-window.AMS.permissions = {
-  getRole, can, requirePermission, canAccessPage,
-  applyUIPermissions, applyRoleRestrictions, PERMISSIONS, PAGE_PERMISSIONS, MODAL_PERMISSIONS,
-};
+// ── Pending approvals count (for Manager badge) ───────────────────────────────
+async function loadPendingCount() {
+  if (!can('approve_assets')) return;
+
+  const { count } = await window.AMS.db
+    .from('assets')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending_approval');
+
+  const badge = document.getElementById('n-pending-badge');
+  if (badge) {
+    badge.textContent = count || 0;
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+// ── Expose ────────────────────────────────────────────────────────────────────
+window.AMS.permissions = { can, requirePermission, applyRoleRestrictions, loadPendingCount };

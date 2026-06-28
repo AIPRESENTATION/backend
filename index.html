@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
@@ -150,6 +150,8 @@ tbody tr.sel td{background:var(--accent-glow)}
 .badge-admin{background:var(--purple-bg);color:var(--purple)}.badge-admin::before{background:var(--purple)}
 .badge-done{background:var(--green-bg);color:var(--green)}.badge-done::before{background:var(--green)}
 .badge-pending{background:var(--orange-bg);color:var(--orange)}.badge-pending::before{background:var(--orange)}
+.badge-pending_approval{background:var(--yellow-bg);color:var(--yellow)}.badge-pending_approval::before{background:var(--yellow)}
+.badge-rejected{background:var(--red-bg);color:var(--red)}.badge-rejected::before{background:var(--red)}
 
 /* FORMS */
 .fg{margin-bottom:14px}
@@ -562,6 +564,7 @@ kbd{background:var(--surface2);border:1px solid var(--border2);border-radius:5px
     <div class="nitem" id="n-assets" onclick="nav('assets')"><span class="nicon"><i data-lucide="package" class="ico"></i></span><span class="nlabel">Assets</span><span class="nbadge b-blue" id="sb-badge">10</span></div>
     <div class="nitem" id="n-employees" onclick="nav('employees')"><span class="nicon"><i data-lucide="users" class="ico"></i></span><span class="nlabel">Employees</span></div>
     <div class="nsec">Operations</div>
+    <div class="nitem" id="n-pending" onclick="nav('pending')" style="display:none"><span class="nicon">⏳</span><span class="nlabel">Pending Approvals</span><span class="nbadge b-yellow" id="n-pending-badge">0</span></div>
     <div class="nitem" id="n-allocation" onclick="nav('allocation')"><span class="nicon"><i data-lucide="arrow-left-right" class="ico"></i></span><span class="nlabel">Allocation</span></div>
     <div class="nitem" id="n-maintenance" onclick="nav('maintenance')"><span class="nicon"><i data-lucide="wrench" class="ico"></i></span><span class="nlabel">Maintenance</span><span class="nbadge">3</span></div>
     <div class="nitem" id="n-vendors" onclick="nav('vendors')"><span class="nicon"><i data-lucide="building-2" class="ico"></i></span><span class="nlabel">Vendors</span></div>
@@ -707,6 +710,28 @@ kbd{background:var(--surface2);border:1px solid var(--border2);border-radius:5px
     </div>
     <div class="bulk-bar" id="bulkBar"><span id="bulkCnt">0</span> assets selected<div class="bb-actions"><button class="btn btn-ghost btn-sm" onclick="toast('info','Bulk Assign','Opening assign dialog…')">Assign</button><button class="btn btn-ghost btn-sm" onclick="toast('info','Export','Exporting selected…')">Export</button><button class="btn btn-danger btn-sm" onclick="toast('warning','Bulk Dispose','Requires confirmation')">Dispose</button><button class="btn btn-ghost btn-sm" onclick="clearSel()">✕ Clear</button></div></div>
     <div class="card"><div class="card-body p0 tbl-wrap"><table><thead><tr><th class="tck"><input type="checkbox" id="selAll" onchange="selAllTog(this)"></th><th>Asset ID</th><th>Name</th><th>Category</th><th>Serial No.</th><th>Department</th><th>Assigned To</th><th>Purchase Date</th><th>Warranty</th><th>Value (₹)</th><th>Status</th><th>Actions</th></tr></thead><tbody id="atbody"></tbody></table></div></div>
+  </div>
+
+  <!-- PENDING APPROVALS (Manager/Admin only) -->
+  <div class="page" id="page-pending">
+    <div class="phd">
+      <div class="phd-l"><h2>Pending Approvals</h2><p>Asset registrations submitted by employees awaiting your approval</p></div>
+      <div class="phd-r"><button class="btn btn-ghost btn-sm" onclick="loadPendingApprovals()">↻ Refresh</button></div>
+    </div>
+    <div class="alert alert-info" style="margin-bottom:18px">
+      ℹ️ Employees submit assets for approval. Review the details and <b>Approve</b> to add to inventory, or <b>Reject</b> to decline.
+    </div>
+    <div class="card"><div class="card-body p0 tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Asset ID</th><th>Name</th><th>Category</th><th>Serial No.</th>
+          <th>Department</th><th>Value</th><th>Submitted By</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="pendingApprovalsBody">
+          <tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text3)">⏳ Loading…</td></tr>
+        </tbody>
+      </table>
+    </div></div>
   </div>
 
   <!-- EMPLOYEES -->
@@ -1054,6 +1079,7 @@ kbd{background:var(--surface2);border:1px solid var(--border2);border-radius:5px
 <script src="js/config.js"></script>
 <script src="js/bootstrap-config.js"></script>
 <script src="js/supabase.js"></script>
+<script src="js/permissions.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/permissions.js"></script>
 <script src="js/dashboard.js"></script>
@@ -1163,6 +1189,9 @@ function nav(p) {
       break;
     case 'depreciation':
       if (typeof loadDepreciation === 'function') loadDepreciation();
+      break;
+    case 'pending':
+      if (typeof loadPendingApprovals === 'function') loadPendingApprovals();
       break;
     case 'settings':
       if (typeof initIcons === 'function') initIcons();

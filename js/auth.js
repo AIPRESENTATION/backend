@@ -144,6 +144,8 @@ async function doLogin(email, password) {
   toast('success', `Welcome back, ${firstName}!`, `Signed in as ${currentUser.role || 'Employee'}`);
 
   if (typeof loadDashboard === 'function') loadDashboard();
+  // Load pending badge count for manager
+  setTimeout(() => window.AMS.permissions?.loadPendingCount?.(), 500);
   return true;
 }
 
@@ -285,6 +287,7 @@ async function restoreSession() {
 
   console.log(`[Auth] ✅ Restored: ${profile.full_name} (${profile.role})`);
   if (typeof loadDashboard === 'function') loadDashboard();
+  setTimeout(() => window.AMS.permissions?.loadPendingCount?.(), 500);
 }
 
 // ── AUTH STATE LISTENER ───────────────────────────────────────────────────────

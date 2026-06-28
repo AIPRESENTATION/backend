@@ -56,11 +56,13 @@ const APP_CONFIG = {
   },
   // Asset statuses
   assetStatus: {
-    available: 'Available',
-    inuse: 'In Use',
-    repair: 'Under Repair',
-    disposed: 'Disposed',
-    reserved: 'Reserved',
+    available:        'Available',
+    inuse:            'In Use',
+    repair:           'Under Repair',
+    disposed:         'Disposed',
+    reserved:         'Reserved',
+    pending_approval: 'Pending Approval',
+    rejected:         'Rejected',
   },
 };
 

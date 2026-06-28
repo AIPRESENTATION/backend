@@ -249,9 +249,11 @@ function updateBulkBar() {
   }
 }
 
-// ── Add Asset ─────────────────────────────────────────────────────────────────
+// ── Add Asset (with approval workflow) ───────────────────────────────────────
+// Employee  → status = 'pending_approval' (Manager must approve)
+// Manager+  → status = 'available' (direct registration, no approval needed)
 async function submitAsset() {
-  if (!window.AMS.permissions?.requirePermission('register_assets', 'Register assets')) return;
+  if (!window.AMS.permissions?.requirePermission('register_assets', 'register assets')) return;
 
   const get = id => document.getElementById(id)?.value?.trim();
 
@@ -300,15 +302,17 @@ async function submitAsset() {
   const insertPayload = {
     asset_code:      assetCode,
     name:            name,
-    category_id:     cat || null,         // UUID from select
+    category_id:     cat || null,
     serial_number:   serial,
-    department_id:   dept || null,        // UUID from select
+    department_id:   dept || null,
     purchase_date:   pd || null,
     warranty_end:    warr || null,
     purchase_value:  val ? Number(val) : null,
     asset_tag:       tag || null,
     notes:           notes || null,
-    status:          'available',
+    // Managers/Admins register directly as 'available'
+    // Employees submit for approval — Manager must approve before asset goes live
+    status:          window.AMS.permissions?.can('approve_assets') ? 'available' : 'pending_approval',
     created_by:      user?.id || null,
   };
 
@@ -325,8 +329,16 @@ async function submitAsset() {
     return;
   }
 
+  const isPending = insertPayload.status === 'pending_approval';
+
   // Log audit event
-  await window.AMS.auth.logAuditEvent('CREATE', 'asset', data.id, `Asset registered: ${name} (${assetCode})`);
+  await window.AMS.auth.logAuditEvent('CREATE', 'asset', data.id,
+    `Asset ${isPending ? 'submitted for approval' : 'registered'}: ${name} (${assetCode})`);
+
+  // Notify managers about pending approval
+  if (isPending) {
+    await notifyManagers(data.id, name, assetCode, user);
+  }
 
   // Clear form and close modal
   clearAssetForm();
@@ -337,11 +349,15 @@ async function submitAsset() {
   nav('assets');
   await loadAssets('all');
 
-  // Select all chip
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
   document.getElementById('chip-all')?.classList.add('on');
 
-  toast('success', 'Asset Registered', `${name} added · ID: ${assetCode}`);
+  if (isPending) {
+    toast('info', 'Submitted for Approval',
+      `${name} (${assetCode}) sent to manager for approval.`);
+  } else {
+    toast('success', 'Asset Registered', `${name} added · ID: ${assetCode}`);
+  }
 }
 
 // ── Edit Asset ────────────────────────────────────────────────────────────────
@@ -643,6 +659,183 @@ function renderPagination(type) {
   `;
 }
 
+// ── Notify managers about pending asset approval ──────────────────────────────
+async function notifyManagers(assetId, assetName, assetCode, submittedBy) {
+  try {
+    // Get all managers and admins
+    const { data: managers } = await window.AMS.db
+      .from('profiles')
+      .select('id')
+      .in('role', ['Manager', 'Admin', 'Super Admin'])
+      .eq('status', 'active');
+
+    if (!managers?.length) return;
+
+    const submitterName = submittedBy?.full_name || submittedBy?.email || 'An employee';
+    const notifications = managers.map(m => ({
+      user_id: m.id,
+      title:   'Asset Approval Required',
+      message: `${submitterName} submitted ${assetCode} — "${assetName}" for approval.`,
+      type:    'system',
+      is_read: false,
+    }));
+
+    await window.AMS.db.from('notifications').insert(notifications);
+  } catch (e) {
+    console.warn('[Assets] Could not send manager notifications:', e.message);
+  }
+}
+
+// ── Approve / Reject pending asset (Manager only) ─────────────────────────────
+async function approveAsset(assetId, assetName) {
+  if (!window.AMS.permissions?.requirePermission('approve_assets', 'Approve assets')) return;
+
+  const { error } = await window.AMS.db
+    .from('assets')
+    .update({ status: 'available', updated_at: new Date().toISOString() })
+    .eq('id', assetId);
+
+  if (error) { toast('error', 'Approval Failed', error.message); return; }
+
+  // Notify the employee who submitted it
+  const { data: asset } = await window.AMS.db
+    .from('assets')
+    .select('created_by, asset_code, name')
+    .eq('id', assetId)
+    .single();
+
+  if (asset?.created_by) {
+    await window.AMS.db.from('notifications').insert({
+      user_id: asset.created_by,
+      title:   'Asset Approved ✅',
+      message: `Your asset ${asset.asset_code} — "${asset.name}" has been approved and is now active.`,
+      type:    'assignment',
+      is_read: false,
+    });
+  }
+
+  await window.AMS.auth.logAuditEvent('UPDATE', 'asset', assetId,
+    `Asset approved: ${assetName}`);
+
+  await loadAssets(assetState.currentFilter);
+  await window.AMS.permissions?.loadPendingCount();
+  toast('success', 'Asset Approved', `"${assetName}" is now available in the inventory.`);
+}
+
+async function rejectAsset(assetId, assetName) {
+  if (!window.AMS.permissions?.requirePermission('reject_assets', 'Reject assets')) return;
+
+  const reason = prompt(`Reason for rejecting "${assetName}" (optional):`);
+  if (reason === null) return; // cancelled
+
+  const { error } = await window.AMS.db
+    .from('assets')
+    .update({ status: 'disposed', notes: `Rejected: ${reason || 'No reason given'}`, updated_at: new Date().toISOString() })
+    .eq('id', assetId);
+
+  if (error) { toast('error', 'Rejection Failed', error.message); return; }
+
+  // Notify employee
+  const { data: asset } = await window.AMS.db
+    .from('assets')
+    .select('created_by, asset_code, name')
+    .eq('id', assetId)
+    .single();
+
+  if (asset?.created_by) {
+    await window.AMS.db.from('notifications').insert({
+      user_id: asset.created_by,
+      title:   'Asset Registration Rejected',
+      message: `Your asset ${asset.asset_code} — "${asset.name}" was rejected.${reason ? ` Reason: ${reason}` : ''}`,
+      type:    'alert',
+      is_read: false,
+    });
+  }
+
+  await window.AMS.auth.logAuditEvent('UPDATE', 'asset', assetId,
+    `Asset rejected: ${assetName}${reason ? ' — ' + reason : ''}`);
+
+  await loadAssets(assetState.currentFilter);
+  await window.AMS.permissions?.loadPendingCount();
+  toast('info', 'Asset Rejected', `"${assetName}" has been rejected.`);
+}
+
+// ── Load Pending Approvals page (Manager view) ────────────────────────────────
+async function loadPendingApprovals() {
+  const container = document.getElementById('pendingApprovalsBody');
+  if (!container) return;
+
+  if (!window.AMS.permissions?.can('approve_assets')) {
+    container.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text3)">
+      You don't have permission to approve assets.
+    </td></tr>`;
+    return;
+  }
+
+  container.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3)">⏳ Loading…</td></tr>`;
+
+  const { data, error } = await window.AMS.db
+    .from('assets')
+    .select('id, asset_code, name, serial_number, purchase_date, purchase_value, created_at, category_id, department_id, created_by')
+    .eq('status', 'pending_approval')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--red);padding:24px">❌ ${error.message}</td></tr>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    container.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)">
+      <div style="font-size:28px;margin-bottom:8px">✅</div>
+      <b>No pending approvals</b><br>
+      <div style="font-size:12px;margin-top:4px">All asset registrations are up to date</div>
+    </td></tr>`;
+    await window.AMS.permissions?.loadPendingCount();
+    return;
+  }
+
+  // Resolve names
+  const catIds  = [...new Set(data.map(a => a.category_id).filter(Boolean))];
+  const deptIds = [...new Set(data.map(a => a.department_id).filter(Boolean))];
+  const userIds = [...new Set(data.map(a => a.created_by).filter(Boolean))];
+  const [catRes, deptRes, userRes] = await Promise.all([
+    catIds.length  ? window.AMS.db.from('asset_categories').select('id,name').in('id', catIds)  : { data: [] },
+    deptIds.length ? window.AMS.db.from('departments').select('id,name').in('id', deptIds)      : { data: [] },
+    userIds.length ? window.AMS.db.from('profiles').select('id,full_name,email').in('id', userIds) : { data: [] },
+  ]);
+  const catMap  = Object.fromEntries((catRes.data  || []).map(x => [x.id, x.name]));
+  const deptMap = Object.fromEntries((deptRes.data || []).map(x => [x.id, x.name]));
+  const userMap = Object.fromEntries((userRes.data || []).map(x => [x.id, x.full_name || x.email]));
+
+  const { sanitize, formatDate, formatCurrency, timeAgo } = window.AMS.utils;
+
+  container.innerHTML = data.map(a => `
+    <tr>
+      <td class="mono">${sanitize(a.asset_code)}</td>
+      <td><b>${sanitize(a.name)}</b></td>
+      <td>${sanitize(catMap[a.category_id] || '—')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px">${sanitize(a.serial_number || '—')}</td>
+      <td>${sanitize(deptMap[a.department_id] || '—')}</td>
+      <td>${formatCurrency(a.purchase_value)}</td>
+      <td>
+        <div style="font-size:12px;font-weight:600">${sanitize(userMap[a.created_by] || '—')}</div>
+        <div style="font-size:11px;color:var(--text3)">${timeAgo(a.created_at)}</div>
+      </td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-success btn-xs" onclick="approveAsset('${a.id}','${sanitize(a.name)}')">
+          ✅ Approve
+        </button>
+        <button class="btn btn-danger btn-xs" onclick="rejectAsset('${a.id}','${sanitize(a.name)}')">
+          ✕ Reject
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  await window.AMS.permissions?.loadPendingCount();
+}
+
 // ── Load category and department dropdowns ────────────────────────────────────
 async function loadAssetFormDropdowns() {
   // Load categories
@@ -682,6 +875,9 @@ window.fA                 = fA;
 window.fNav               = fNav;
 window.openEditAsset      = openEditAsset;
 window.confirmDeleteAsset = confirmDeleteAsset;
+window.approveAsset       = approveAsset;
+window.rejectAsset        = rejectAsset;
+window.loadPendingApprovals = loadPendingApprovals;
 window.generateQR         = generateQR;
 window.printQR            = printQR;
 window.exportCSV          = exportCSV;
